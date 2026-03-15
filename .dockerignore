@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.gitignore
+.env.local
+.env.production
+*.md
+.claude
+drizzle
+e2e

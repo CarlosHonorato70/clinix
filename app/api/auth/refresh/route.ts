@@ -1,5 +1,8 @@
 import { verifyRefreshToken, signAccessToken } from '@/lib/auth/jwt'
 import { cookies } from 'next/headers'
+import { db } from '@/lib/db'
+import { tenants } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 export async function POST() {
   try {
@@ -11,11 +14,16 @@ export async function POST() {
     }
 
     const payload = verifyRefreshToken(refreshToken)
+
+    // Fetch fresh tenant status on refresh
+    const [tenant] = await db.select({ status: tenants.status }).from(tenants).where(eq(tenants.id, payload.tenantId)).limit(1)
+
     const accessToken = signAccessToken({
       userId: payload.userId,
       tenantId: payload.tenantId,
       role: payload.role,
       email: payload.email,
+      tenantStatus: tenant?.status || 'unknown',
     })
 
     const isProduction = process.env.NODE_ENV === 'production'

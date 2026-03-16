@@ -47,6 +47,20 @@ export async function middleware(request: NextRequest) {
     const secret = new TextEncoder().encode(process.env.JWT_SECRET!)
     const { payload } = await jwtVerify(token, secret)
 
+    // Block suspended/cancelled tenants (redirect pages, 402 for API)
+    const tenantStatus = payload.tenantStatus as string | undefined
+    if (tenantStatus === 'suspended' || tenantStatus === 'cancelled') {
+      if (pathname.startsWith('/api/')) {
+        return Response.json(
+          { error: 'Assinatura suspensa. Atualize seu plano para continuar.' },
+          { status: 402 }
+        )
+      }
+      if (!pathname.startsWith('/configuracoes')) {
+        return NextResponse.redirect(new URL('/configuracoes', request.url))
+      }
+    }
+
     // Inject user context as headers for downstream API routes
     const response = NextResponse.next()
     response.headers.set('x-user-id', payload.userId as string)

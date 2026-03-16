@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { agendamentos, pacientes, convenios, usuarios } from '@/lib/db/schema'
 import { eq, and, gte, lte } from 'drizzle-orm'
 import { parseDateRange } from '@/lib/api/helpers'
+import { writeAuditLog } from '@/lib/audit/logger'
 
 export const GET = withAuth(async (req, ctx) => {
   const url = new URL(req.url)
@@ -71,6 +72,15 @@ export const POST = withAuth(async (req, ctx) => {
     convenioId,
     observacoes,
   }).returning()
+
+  writeAuditLog({
+    tenantId: ctx.tenantId,
+    usuarioId: ctx.userId,
+    acao: 'create',
+    entidade: 'agendamentos',
+    entidadeId: created.id,
+    ip: ctx.ip,
+  })
 
   return Response.json({ agendamento: created }, { status: 201 })
 }, ['admin', 'medico', 'recepcionista'])

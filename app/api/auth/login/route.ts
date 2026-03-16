@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { usuarios } from '@/lib/db/schema'
+import { usuarios, tenants } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { verifyPassword } from '@/lib/auth/password'
 import { signAccessToken, signRefreshToken } from '@/lib/auth/jwt'
@@ -36,11 +36,15 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Credenciais inválidas' }, { status: 401 })
     }
 
+    // Fetch tenant status for JWT payload
+    const [tenant] = await db.select({ status: tenants.status }).from(tenants).where(eq(tenants.id, user.tenantId)).limit(1)
+
     const payload = {
       userId: user.id,
       tenantId: user.tenantId,
       role: user.role,
       email: user.email,
+      tenantStatus: tenant?.status || 'unknown',
     }
 
     const accessToken = signAccessToken(payload)

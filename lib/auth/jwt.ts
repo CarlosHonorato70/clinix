@@ -8,6 +8,7 @@ export interface TokenPayload {
   tenantId: string
   role: string
   email: string
+  tenantStatus?: string
 }
 
 export function signAccessToken(payload: TokenPayload): string {

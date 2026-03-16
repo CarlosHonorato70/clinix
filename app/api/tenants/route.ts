@@ -5,6 +5,7 @@ import { hashPassword } from '@/lib/auth/password'
 import { signAccessToken, signRefreshToken } from '@/lib/auth/jwt'
 import { setAuthCookies } from '@/lib/auth/cookies'
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/security/rate-limit'
+import { sendWelcomeEmail } from '@/lib/email/resend'
 
 export async function POST(req: Request) {
   try {
@@ -64,7 +65,11 @@ export async function POST(req: Request) {
       tenantId: tenant.id,
       role: 'admin',
       email: user.email,
+      tenantStatus: 'trial',
     }
+
+    // Fire-and-forget welcome email
+    sendWelcomeEmail(email, nomeClinica, nomeAdmin).catch(() => {})
 
     const accessToken = signAccessToken(payload)
     const refreshToken = signRefreshToken(payload)

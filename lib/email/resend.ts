@@ -1,11 +1,15 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY || '')
+let _resend: Resend | null = null
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!)
+  return _resend
+}
 
 const FROM = process.env.EMAIL_FROM || 'MedFlow <noreply@medflow.com.br>'
 
 export async function sendWelcomeEmail(to: string, clinicaNome: string, userName: string) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: `Bem-vindo ao MedFlow, ${userName}!`,
@@ -44,7 +48,7 @@ export async function sendWelcomeEmail(to: string, clinicaNome: string, userName
 export async function sendPasswordResetEmail(to: string, resetToken: string) {
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.medflow.com.br'}/reset-password?token=${resetToken}`
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: 'Redefinir sua senha — MedFlow',
@@ -76,7 +80,7 @@ export async function sendPasswordResetEmail(to: string, resetToken: string) {
 }
 
 export async function sendTrialExpiringEmail(to: string, clinicaNome: string, daysLeft: number) {
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: `Seu trial MedFlow expira em ${daysLeft} dia${daysLeft > 1 ? 's' : ''}`,

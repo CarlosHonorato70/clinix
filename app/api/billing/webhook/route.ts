@@ -60,10 +60,9 @@ export async function POST(req: Request) {
     // Log webhook event
     writeAuditLog({
       tenantId: 'system',
-      userId: 'system',
-      action: 'billing.webhook',
-      resource: 'billing',
-      details: { event: payload.event },
+      usuarioId: 'system',
+      acao: 'update',
+      entidade: 'billing',
       ip: req.headers.get('x-forwarded-for') || 'webhook',
     })
 

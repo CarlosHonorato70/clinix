@@ -37,10 +37,9 @@ export async function POST(req: Request) {
 
     writeAuditLog({
       tenantId: 'system',
-      userId,
-      action: 'auth.password_reset',
-      resource: 'usuarios',
-      details: {},
+      usuarioId: userId,
+      acao: 'update',
+      entidade: 'usuarios',
       ip: req.headers.get('x-forwarded-for') || 'unknown',
     })
 

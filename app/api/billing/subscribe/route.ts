@@ -73,10 +73,9 @@ export const POST = withAuth(async (req, ctx) => {
 
     writeAuditLog({
       tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'billing.subscribe',
-      resource: 'billing',
-      details: { planId, billingType, subscriptionId: subscription.id },
+      usuarioId: ctx.userId,
+      acao: 'create',
+      entidade: 'billing',
       ip: ctx.ip,
     })
 

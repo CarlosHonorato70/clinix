@@ -10,6 +10,8 @@
  * - Documentação pública de Web Services
  */
 
+import type { AuthMethod } from './gateway'
+
 export interface OperadoraCatalogo {
   /** Nome da operadora */
   nome: string
@@ -21,6 +23,10 @@ export interface OperadoraCatalogo {
   portalPrestador: string
   /** Instruções para obter credenciais WS */
   instrucoes: string
+  /** Método de autenticação recomendado */
+  authMethod?: AuthMethod
+  /** URL de autenticação (OAuth/Session) quando aplicável */
+  authUrl?: string
   /** Telefone de suporte ao prestador */
   telefone?: string
   /** Email do coordenador TISS */
@@ -48,10 +54,11 @@ export const OPERADORAS_CATALOGO: OperadoraCatalogo[] = [
     wsdlUrl: 'http://www.hapvida.com.br/pls/webhap/tissws.TissNet',
     portalPrestador: 'https://www.hapvida.com.br/pls/webhap/tiss.TissNet',
     instrucoes: 'Acesse o Portal TISS da Hapvida para download do TissNet e manual de integração. O endpoint Web Service é público.',
+    authMethod: 'ws_security',
     telefone: '0800 280 9130',
     cor: '#00a651',
     wsDisponivel: true,
-    observacoes: 'Usa software TissNet da ANS. Endpoint WS público disponível.',
+    observacoes: 'Usa software TissNet da ANS. Endpoint WS público disponível. Autenticação via WS-Security.',
   },
   {
     nome: 'NotreDame Intermédica',
@@ -69,10 +76,12 @@ export const OPERADORAS_CATALOGO: OperadoraCatalogo[] = [
     codigoAns: '326305',
     portalPrestador: 'https://credenciado.amil.com.br/',
     instrucoes: 'Acesse o Portal do Credenciado Amil. O manual do Web Service está em: amil.com.br/amilportal/upload/tiss/Amil_Manual_Webservice.pdf. O Portal de APIs do Grupo Amil está em api-portal-dev.servicos.grupoamil.com.br.',
+    authMethod: 'bearer_token',
+    authUrl: 'https://api-portal-dev.servicos.grupoamil.com.br/oauth/token',
     telefone: '3004 2206',
     cor: '#e31937',
     wsDisponivel: true,
-    observacoes: 'Suporta envio via WebService e upload XML no portal.',
+    observacoes: 'Suporta OAuth 2.0 Bearer Token via Portal de APIs. Também aceita WS-Security e upload XML.',
   },
 
   // ─── Bradesco Saúde ──────────────────────────────────────────────
@@ -81,10 +90,11 @@ export const OPERADORAS_CATALOGO: OperadoraCatalogo[] = [
     codigoAns: '005711',
     portalPrestador: 'https://wwws.bradescosaude.com.br/PCBS-GerenciadorPortal/td/loginReferenciado.do',
     instrucoes: 'Cadastre-se no Portal do Referenciado Bradesco Saúde. O endpoint WSDL é fornecido após o primeiro acesso. Consulte também o Portal de APIs: bradescoseguros.com.br/clientes/portal-apis.',
+    authMethod: 'session_token',
     telefone: '0800 727 9966',
     cor: '#cc092f',
     wsDisponivel: true,
-    observacoes: 'Portal de APIs em desenvolvimento. Aceita upload XML e WebService.',
+    observacoes: 'Usa token de sessão via portal. Portal de APIs REST em desenvolvimento.',
   },
 
   // ─── SulAmérica ─────────────────────────────────────────────────
@@ -152,11 +162,12 @@ export const OPERADORAS_CATALOGO: OperadoraCatalogo[] = [
     nome: 'Saúde Caixa (Funcef)',
     codigoAns: '304701',
     portalPrestador: 'https://centralsaudecaixa.com.br/',
-    instrucoes: 'A Central Saúde Caixa disponibiliza Web Services TISS. Consulte centralsaudecaixa.com.br/faq/webservice-disponiveis para lista de serviços disponíveis e documentação WSDL.',
+    instrucoes: 'A Central Saúde Caixa disponibiliza Web Services TISS. Consulte centralsaudecaixa.com.br/faq/webservice-disponiveis para lista de serviços disponíveis e documentação WSDL. Requer certificado digital do prestador.',
+    authMethod: 'certificate',
     telefone: '0800 726 0505',
     cor: '#005ca9',
     wsDisponivel: true,
-    observacoes: 'Documentação WS pública disponível no FAQ do portal.',
+    observacoes: 'Requer certificado digital (mTLS). Documentação WS pública no FAQ.',
   },
   {
     nome: 'Care Plus',

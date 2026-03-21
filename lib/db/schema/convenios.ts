@@ -13,10 +13,22 @@ export const convenios = pgTable('convenios', {
   wsdlUrl: text('wsdl_url'),
   /** Código do prestador na operadora */
   codigoPrestador: varchar('codigo_prestador', { length: 20 }),
+  /** Método de autenticação: ws_security | basic | bearer_token | session_token | api_key | certificate | none */
+  authMethod: varchar('auth_method', { length: 20 }).default('ws_security'),
   /** Login de acesso ao portal/WS da operadora */
   wsLogin: varchar('ws_login', { length: 100 }),
   /** Senha de acesso (criptografada) */
   wsSenha: varchar('ws_senha', { length: 255 }),
+  /** Token Bearer (OAuth 2.0) ou API Key */
+  wsToken: text('ws_token'),
+  /** URL de autenticação para OAuth 2.0 / Session Token */
+  authUrl: text('auth_url'),
+  /** Client ID para OAuth 2.0 */
+  authClientId: varchar('auth_client_id', { length: 200 }),
+  /** Client Secret para OAuth 2.0 */
+  authClientSecret: varchar('auth_client_secret', { length: 500 }),
+  /** Nome do header para API Key (default: X-Api-Key) */
+  apiKeyHeader: varchar('api_key_header', { length: 50 }),
   /** Configurações extras por operadora (JSON) */
   wsConfig: jsonb('ws_config'),
   // wsConfig: { autorizacaoUrl, elegibilidadeUrl, recursoGlosaUrl, tabelaPreco, prazoEnvioDias }

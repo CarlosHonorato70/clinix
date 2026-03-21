@@ -28,13 +28,43 @@ export type TissTransacao =
   | 'STATUS_RECURSO_GLOSA'
   | 'SOLICITACAO_DEMONSTRATIVO_RETORNO'
 
+/**
+ * Método de autenticação do Web Service da operadora.
+ *
+ * - ws_security: WS-Security UsernameToken no header SOAP (padrão TISS)
+ * - basic: HTTP Basic Auth (login:senha em Base64)
+ * - bearer_token: OAuth 2.0 Bearer Token (header Authorization: Bearer <token>)
+ * - session_token: Token de sessão (login primeiro, usa token nas chamadas seguintes)
+ * - api_key: Chave de API (header customizado)
+ * - certificate: Certificado digital (mTLS) — requer pfx/p12
+ * - none: Sem autenticação
+ */
+export type AuthMethod = 'ws_security' | 'basic' | 'bearer_token' | 'session_token' | 'api_key' | 'certificate' | 'none'
+
 export interface ConvenioConfig {
   nome: string
   codigoAns: string
   wsdlUrl: string
   codigoPrestador?: string
+
+  // ── Autenticação ──────────────────────────────────────────────────
+  /** Método de autenticação (default: ws_security) */
+  authMethod?: AuthMethod
+  /** Login/username para ws_security, basic, session_token */
   wsLogin?: string
+  /** Senha para ws_security, basic, session_token */
   wsSenha?: string
+  /** Token Bearer (OAuth 2.0) ou API Key */
+  wsToken?: string
+  /** URL de autenticação para OAuth 2.0 (token endpoint) */
+  authUrl?: string
+  /** Client ID para OAuth 2.0 */
+  authClientId?: string
+  /** Client Secret para OAuth 2.0 */
+  authClientSecret?: string
+  /** Nome do header para API Key (default: X-Api-Key) */
+  apiKeyHeader?: string
+
   wsConfig?: {
     autorizacaoUrl?: string
     elegibilidadeUrl?: string
@@ -44,6 +74,108 @@ export interface ConvenioConfig {
     tabelaPreco?: string
     prazoEnvioDias?: number
     timeout?: number
+  }
+}
+
+// ─── Token cache (para OAuth e session tokens) ──────────────────────────────
+
+interface CachedToken {
+  token: string
+  expiresAt: number
+}
+
+const tokenCache = new Map<string, CachedToken>()
+
+/** Obter OAuth 2.0 Bearer Token via Client Credentials */
+async function getOAuthToken(config: ConvenioConfig): Promise<string | null> {
+  const cacheKey = `oauth:${config.codigoAns}:${config.authClientId}`
+  const cached = tokenCache.get(cacheKey)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.token
+  }
+
+  if (!config.authUrl || !config.authClientId || !config.authClientSecret) {
+    return null
+  }
+
+  try {
+    const response = await fetch(config.authUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${config.authClientId}:${config.authClientSecret}`).toString('base64')}`,
+      },
+      body: 'grant_type=client_credentials',
+      signal: AbortSignal.timeout(10000),
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json() as { access_token: string; expires_in?: number }
+    const token = data.access_token
+    const expiresIn = data.expires_in ?? 3600
+
+    tokenCache.set(cacheKey, {
+      token,
+      expiresAt: Date.now() + (expiresIn - 60) * 1000, // Renew 60s before expiry
+    })
+
+    return token
+  } catch {
+    return null
+  }
+}
+
+/** Obter Session Token via login endpoint */
+async function getSessionToken(config: ConvenioConfig): Promise<string | null> {
+  const cacheKey = `session:${config.codigoAns}:${config.wsLogin}`
+  const cached = tokenCache.get(cacheKey)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.token
+  }
+
+  if (!config.authUrl || !config.wsLogin || !config.wsSenha) {
+    return null
+  }
+
+  try {
+    const response = await fetch(config.authUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: config.wsLogin,
+        password: config.wsSenha,
+        login: config.wsLogin,
+        senha: config.wsSenha,
+      }),
+      signal: AbortSignal.timeout(10000),
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json() as { token?: string; access_token?: string; sessionToken?: string; expires_in?: number }
+    const token = data.token ?? data.access_token ?? data.sessionToken
+    if (!token) return null
+
+    const expiresIn = data.expires_in ?? 1800 // Default 30min session
+
+    tokenCache.set(cacheKey, {
+      token,
+      expiresAt: Date.now() + (expiresIn - 60) * 1000,
+    })
+
+    return token
+  } catch {
+    return null
+  }
+}
+
+/** Limpar cache de tokens de um convênio */
+export function limparTokenCache(codigoAns: string): void {
+  for (const key of tokenCache.keys()) {
+    if (key.includes(codigoAns)) {
+      tokenCache.delete(key)
+    }
   }
 }
 
@@ -103,10 +235,9 @@ function buildSOAPEnvelope(req: GatewayRequest): string {
       </ans:epilogo>
     </ans:mensagemTISS>`
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-  xmlns:ans="${TISS_NAMESPACE}">
-  ${req.convenio.wsLogin ? `
+  // WS-Security header only for ws_security auth method (or default when login is provided)
+  const authMethod = req.convenio.authMethod ?? (req.convenio.wsLogin ? 'ws_security' : 'none')
+  const wsSecurityHeader = authMethod === 'ws_security' && req.convenio.wsLogin ? `
   <soap:Header>
     <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
       <wsse:UsernameToken>
@@ -114,7 +245,12 @@ function buildSOAPEnvelope(req: GatewayRequest): string {
         <wsse:Password>${req.convenio.wsSenha ?? ''}</wsse:Password>
       </wsse:UsernameToken>
     </wsse:Security>
-  </soap:Header>` : ''}
+  </soap:Header>` : ''
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:ans="${TISS_NAMESPACE}">
+  ${wsSecurityHeader}
   <soap:Body>
     ${mensagemTISS}
   </soap:Body>
@@ -188,19 +324,65 @@ export async function enviarTransacao(req: GatewayRequest): Promise<GatewayRespo
   const url = getEndpointUrl(req.transacao, req.convenio)
   const soapAction = SOAP_ACTIONS[req.transacao]
   const timeout = req.convenio.wsConfig?.timeout ?? 30000
+  const authMethod = req.convenio.authMethod ?? (req.convenio.wsLogin ? 'basic' : 'none')
 
   const soapXML = buildSOAPEnvelope(req)
   const inicio = Date.now()
 
   try {
+    // Resolve authentication headers based on method
+    const authHeaders: Record<string, string> = {}
+
+    switch (authMethod) {
+      case 'basic':
+        if (req.convenio.wsLogin) {
+          authHeaders['Authorization'] = `Basic ${Buffer.from(`${req.convenio.wsLogin}:${req.convenio.wsSenha ?? ''}`).toString('base64')}`
+        }
+        break
+
+      case 'bearer_token': {
+        // Static token or OAuth 2.0
+        let token = req.convenio.wsToken
+        if (!token && req.convenio.authUrl) {
+          token = await getOAuthToken(req.convenio) ?? undefined
+        }
+        if (token) {
+          authHeaders['Authorization'] = `Bearer ${token}`
+        }
+        break
+      }
+
+      case 'session_token': {
+        const sessionToken = await getSessionToken(req.convenio)
+        if (sessionToken) {
+          authHeaders['Authorization'] = `Bearer ${sessionToken}`
+          authHeaders['X-Session-Token'] = sessionToken
+        }
+        break
+      }
+
+      case 'api_key':
+        if (req.convenio.wsToken) {
+          const headerName = req.convenio.apiKeyHeader ?? 'X-Api-Key'
+          authHeaders[headerName] = req.convenio.wsToken
+        }
+        break
+
+      case 'ws_security':
+        // Auth is in the SOAP header (XML), not in HTTP headers
+        break
+
+      case 'none':
+      default:
+        break
+    }
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
         'SOAPAction': soapAction,
-        ...(req.convenio.wsLogin ? {
-          'Authorization': `Basic ${Buffer.from(`${req.convenio.wsLogin}:${req.convenio.wsSenha ?? ''}`).toString('base64')}`,
-        } : {}),
+        ...authHeaders,
       },
       body: soapXML,
       signal: AbortSignal.timeout(timeout),

@@ -235,14 +235,17 @@ function buildSOAPEnvelope(req: GatewayRequest): string {
       </ans:epilogo>
     </ans:mensagemTISS>`
 
+  // XML-escape credentials to prevent XML injection
+  const escXml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+
   // WS-Security header only for ws_security auth method (or default when login is provided)
   const authMethod = req.convenio.authMethod ?? (req.convenio.wsLogin ? 'ws_security' : 'none')
   const wsSecurityHeader = authMethod === 'ws_security' && req.convenio.wsLogin ? `
   <soap:Header>
     <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
       <wsse:UsernameToken>
-        <wsse:Username>${req.convenio.wsLogin}</wsse:Username>
-        <wsse:Password>${req.convenio.wsSenha ?? ''}</wsse:Password>
+        <wsse:Username>${escXml(req.convenio.wsLogin)}</wsse:Username>
+        <wsse:Password>${escXml(req.convenio.wsSenha ?? '')}</wsse:Password>
       </wsse:UsernameToken>
     </wsse:Security>
   </soap:Header>` : ''

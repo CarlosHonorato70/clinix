@@ -1,7 +1,7 @@
 import { withAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { lotesFaturamento, guiasTiss, convenios } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 import { buildLoteGuiasXML, buildGuiaXML, type CabecalhoLote, type DadosGuia, type Prestador, type Beneficiario } from '@/lib/tiss/xml-builder'
 import { preAuditGuia } from '@/lib/tiss/pre-audit'
 
@@ -9,15 +9,30 @@ export const POST = withAuth(async (req, user) => {
   const id = req.url.split('/lotes/')[1]?.split('/enviar')[0]
   if (!id) return Response.json({ error: 'ID do lote não informado' }, { status: 400 })
 
+  // Atomic: claim the lote by updating status from 'rascunho' to 'processando'
+  // This prevents race conditions where two requests try to send the same lote
   const [lote] = await db
-    .select()
-    .from(lotesFaturamento)
-    .where(and(eq(lotesFaturamento.id, id), eq(lotesFaturamento.tenantId, user.tenantId)))
-    .limit(1)
+    .update(lotesFaturamento)
+    .set({ status: 'processando' as string })
+    .where(
+      and(
+        eq(lotesFaturamento.id, id),
+        eq(lotesFaturamento.tenantId, user.tenantId),
+        eq(lotesFaturamento.status, 'rascunho')
+      )
+    )
+    .returning()
 
-  if (!lote) return Response.json({ error: 'Lote não encontrado' }, { status: 404 })
-  if (lote.status !== 'rascunho') {
-    return Response.json({ error: 'Lote já foi enviado' }, { status: 400 })
+  if (!lote) {
+    // Check if exists to give better error
+    const [existing] = await db
+      .select({ id: lotesFaturamento.id, status: lotesFaturamento.status })
+      .from(lotesFaturamento)
+      .where(and(eq(lotesFaturamento.id, id), eq(lotesFaturamento.tenantId, user.tenantId)))
+      .limit(1)
+
+    if (!existing) return Response.json({ error: 'Lote não encontrado' }, { status: 404 })
+    return Response.json({ error: `Lote já está no status "${existing.status}"` }, { status: 400 })
   }
 
   const guias = await db

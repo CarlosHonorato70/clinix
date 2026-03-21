@@ -42,6 +42,12 @@ export const POST = withAuth(async (req, user) => {
     return Response.json({ error: 'Guia não encontrada' }, { status: 404 })
   }
 
+  if (guia.status !== 'glosado') {
+    return Response.json({
+      error: `Recurso só pode ser criado para guias glosadas. Status atual: "${guia.status}"`,
+    }, { status: 400 })
+  }
+
   const [convenio] = guia.convenioId
     ? await db.select().from(convenios).where(eq(convenios.id, guia.convenioId)).limit(1)
     : [null]

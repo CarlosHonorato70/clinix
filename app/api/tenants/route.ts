@@ -80,7 +80,9 @@ export async function POST(req: Request) {
     }, { status: 201 })
 
     return setAuthCookies(response, accessToken, refreshToken)
-  } catch {
-    return Response.json({ error: 'Erro ao criar conta' }, { status: 500 })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('[Signup Error]', message)
+    return Response.json({ error: 'Erro ao criar conta', detail: process.env.NODE_ENV === 'development' ? message : undefined }, { status: 500 })
   }
 }

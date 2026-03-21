@@ -4,10 +4,11 @@ services:
     container_name: clinix-db
     environment:
       POSTGRES_DB: clinix
-      POSTGRES_USER: clinix
-      POSTGRES_PASSWORD: clinix123
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - '5432:5432'
+      - '5433:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
 

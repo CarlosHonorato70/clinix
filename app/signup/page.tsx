@@ -73,9 +73,12 @@ export default function SignupPage() {
       justifyContent: 'center',
       background: '#0f1117',
       fontFamily: 'system-ui, sans-serif',
+      overflowY: 'auto',
+      padding: '40px 16px',
     }}>
       <form onSubmit={handleSubmit} style={{
         width: 440,
+        maxWidth: '100%',
         padding: 40,
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: 16,

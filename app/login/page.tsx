@@ -100,6 +100,8 @@ export default function LoginPage() {
 
         {error && (
           <div
+            role="alert"
+            id="login-error"
             style={{
               background: 'rgba(239,68,68,0.1)',
               border: '1px solid rgba(239,68,68,0.3)',
@@ -132,6 +134,7 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="seu@email.com"
             required
+            aria-describedby={error ? 'login-error' : undefined}
             style={{
               width: '100%',
               padding: '10px 14px',

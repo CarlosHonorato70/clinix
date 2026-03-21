@@ -171,15 +171,21 @@ export default function SignupPage() {
         </div>
 
         {error && (
-          <div style={{
-            marginTop: 12,
-            padding: '8px 12px',
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
-            borderRadius: 6,
-            color: '#f87171',
-            fontSize: 13,
-          }}>{error}</div>
+          <div
+            role="alert"
+            id="signup-error"
+            style={{
+              marginTop: 12,
+              padding: '8px 12px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: 6,
+              color: '#f87171',
+              fontSize: 13,
+            }}
+          >
+            {error}
+          </div>
         )}
 
         <button

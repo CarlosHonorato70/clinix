@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "prepare": "husky"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.43.0",
@@ -49,9 +50,17 @@
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.1.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "bash -c 'npx tsc --noEmit'"
+    ]
   }
 }

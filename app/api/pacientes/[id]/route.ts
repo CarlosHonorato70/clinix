@@ -3,6 +3,8 @@ import { withAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { pacientes, convenios } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { validateBody, isValidationError } from '@/lib/validation/validate'
+import { pacienteUpdateSchema } from '@/lib/validation/schemas'
 
 export const GET = withAuth(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split('/').pop()!
@@ -36,11 +38,13 @@ export const GET = withAuth(async (req: NextRequest, ctx) => {
 
 export const PUT = withAuth(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split('/').pop()!
-  const body = await req.json()
+
+  const result = await validateBody(req, pacienteUpdateSchema)
+  if (isValidationError(result)) return result
 
   const [updated] = await db
     .update(pacientes)
-    .set(body)
+    .set(result)
     .where(and(eq(pacientes.id, id), eq(pacientes.tenantId, ctx.tenantId)))
     .returning()
 

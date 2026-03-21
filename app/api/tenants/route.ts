@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     // Rate limit signups
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || req.headers.get('x-real-ip') || 'unknown'
-    const rl = checkRateLimit(`signup:${ip}`, { max: 3, windowSec: 3600 })
+    const rl = await checkRateLimit(`signup:${ip}`, { max: 3, windowSec: 3600 })
     if (!rl.allowed) return rateLimitResponse(rl)
 
     const { nomeClinica, subdominio, nomeAdmin, email, senha } = await req.json()

@@ -4,7 +4,7 @@ import { eq, and } from 'drizzle-orm'
 import { verifyPassword } from '@/lib/auth/password'
 import { signAccessToken, signRefreshToken } from '@/lib/auth/jwt'
 import { setAuthCookies } from '@/lib/auth/cookies'
-import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/security/rate-limit'
+import { checkRateLimit, rateLimitResponse, RATE_LIMITS, isAccountLocked, recordLoginFailure, clearLoginFailures } from '@/lib/security/rate-limit'
 import { validateBody, isValidationError } from '@/lib/validation/validate'
 import { loginSchema } from '@/lib/validation/schemas'
 import { writeAuditLog } from '@/lib/audit/logger'
@@ -14,12 +14,21 @@ export async function POST(req: Request) {
     // Rate limit by IP
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || req.headers.get('x-real-ip') || 'unknown'
-    const rl = checkRateLimit(`login:${ip}`, RATE_LIMITS.login)
+    const rl = await checkRateLimit(`login:${ip}`, RATE_LIMITS.login)
     if (!rl.allowed) return rateLimitResponse(rl)
 
     const result = await validateBody(req, loginSchema)
     if (isValidationError(result)) return result
     const { email, password } = result
+
+    // Account lockout check
+    const locked = await isAccountLocked(email)
+    if (locked) {
+      return Response.json(
+        { error: 'Conta temporariamente bloqueada. Tente novamente em 15 minutos.' },
+        { status: 429 }
+      )
+    }
 
     const [user] = await db
       .select()
@@ -28,13 +37,24 @@ export async function POST(req: Request) {
       .limit(1)
 
     if (!user) {
+      await recordLoginFailure(email)
       return Response.json({ error: 'Credenciais inválidas' }, { status: 401 })
     }
 
     const valid = await verifyPassword(password, user.senhaHash)
     if (!valid) {
+      const { locked: nowLocked } = await recordLoginFailure(email)
+      if (nowLocked) {
+        return Response.json(
+          { error: 'Conta temporariamente bloqueada. Tente novamente em 15 minutos.' },
+          { status: 429 }
+        )
+      }
       return Response.json({ error: 'Credenciais inválidas' }, { status: 401 })
     }
+
+    // Successful login — clear failure counter
+    await clearLoginFailures(email)
 
     // Fetch tenant status for JWT payload
     const [tenant] = await db.select({ status: tenants.status }).from(tenants).where(eq(tenants.id, user.tenantId)).limit(1)

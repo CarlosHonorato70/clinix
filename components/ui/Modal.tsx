@@ -21,14 +21,48 @@ export default function Modal({
   className,
 }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
-  // Close on Escape
+  // Close on Escape + focus trap
   useEffect(() => {
     if (!isOpen) return
+
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+
+      // Focus trap
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusable.length === 0) return
+
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
     }
+
     document.addEventListener('keydown', handleKey)
+
+    // Auto-focus first focusable element
+    requestAnimationFrame(() => {
+      const first = dialogRef.current?.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      first?.focus()
+    })
+
     return () => document.removeEventListener('keydown', handleKey)
   }, [isOpen, onClose])
 
@@ -67,6 +101,7 @@ export default function Modal({
       }}
     >
       <div
+        ref={dialogRef}
         className={className}
         role="dialog"
         aria-modal="true"

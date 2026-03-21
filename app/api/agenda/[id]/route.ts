@@ -3,6 +3,8 @@ import { withAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { agendamentos } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { validateBody, isValidationError } from '@/lib/validation/validate'
+import { agendamentoUpdateSchema } from '@/lib/validation/schemas'
 
 export const GET = withAuth(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split('/').pop()!
@@ -19,11 +21,18 @@ export const GET = withAuth(async (req: NextRequest, ctx) => {
 
 export const PUT = withAuth(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split('/').pop()!
-  const body = await req.json()
+
+  const result = await validateBody(req, agendamentoUpdateSchema)
+  if (isValidationError(result)) return result
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { dataHora, ...rest } = result
+  const updateData: Record<string, unknown> = { ...rest }
+  if (dataHora) updateData.dataHora = new Date(dataHora)
 
   const [updated] = await db
     .update(agendamentos)
-    .set(body)
+    .set(updateData as typeof agendamentos.$inferInsert)
     .where(and(eq(agendamentos.id, id), eq(agendamentos.tenantId, ctx.tenantId)))
     .returning()
 

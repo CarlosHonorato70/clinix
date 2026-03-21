@@ -1,4 +1,5 @@
 import { verifyRefreshToken, signAccessToken } from '@/lib/auth/jwt'
+import { isTokenBlacklisted } from '@/lib/auth/token-blacklist'
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 import { tenants } from '@/lib/db/schema'
@@ -11,6 +12,12 @@ export async function POST() {
 
     if (!refreshToken) {
       return Response.json({ error: 'Refresh token não encontrado' }, { status: 401 })
+    }
+
+    // Check if token was revoked (e.g. on logout)
+    const blacklisted = await isTokenBlacklisted(refreshToken)
+    if (blacklisted) {
+      return Response.json({ error: 'Sessão encerrada' }, { status: 401 })
     }
 
     const payload = verifyRefreshToken(refreshToken)

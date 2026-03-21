@@ -3,6 +3,8 @@ import { db } from '@/lib/db'
 import { consultas, pacientes, usuarios } from '@/lib/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
 import { writeAuditLog } from '@/lib/audit/logger'
+import { validateBody, isValidationError } from '@/lib/validation/validate'
+import { consultaCreateSchema } from '@/lib/validation/schemas'
 
 export const GET = withAuth(async (req, ctx) => {
   const url = new URL(req.url)
@@ -51,12 +53,10 @@ export const GET = withAuth(async (req, ctx) => {
 }, ['admin', 'medico'])
 
 export const POST = withAuth(async (req, ctx) => {
-  const body = await req.json()
-  const { pacienteId, agendamentoId, anamnese, exameFisico, hipoteseDiagnostica, conduta, prescricao } = body
+  const result = await validateBody(req, consultaCreateSchema)
+  if (isValidationError(result)) return result
 
-  if (!pacienteId) {
-    return Response.json({ error: 'pacienteId é obrigatório' }, { status: 400 })
-  }
+  const { pacienteId, agendamentoId, anamnese, exameFisico, hipoteseDiagnostica, conduta, prescricao } = result
 
   const [created] = await db.insert(consultas).values({
     tenantId: ctx.tenantId,

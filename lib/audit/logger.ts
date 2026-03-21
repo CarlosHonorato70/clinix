@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { auditLog } from '@/lib/db/schema'
+import { logger } from '@/lib/logging/logger'
 
 interface AuditParams {
   tenantId: string
@@ -14,7 +15,7 @@ interface AuditParams {
 
 /**
  * Writes an audit log entry. Fire-and-forget — never blocks the caller.
- * Silently swallows errors to avoid breaking the primary operation.
+ * Logs errors instead of silently swallowing them.
  */
 export function writeAuditLog(params: AuditParams): void {
   db.insert(auditLog)
@@ -28,7 +29,18 @@ export function writeAuditLog(params: AuditParams): void {
       dadosDepois: params.dadosDepois ?? null,
       ip: params.ip,
     })
-    .catch(() => {
-      // Silently fail — audit logging must never break the main flow
+    .catch((err) => {
+      logger.error(
+        {
+          err: err instanceof Error ? err.message : String(err),
+          audit: {
+            acao: params.acao,
+            entidade: params.entidade,
+            entidadeId: params.entidadeId,
+            tenantId: params.tenantId,
+          },
+        },
+        'Failed to write audit log entry'
+      )
     })
 }

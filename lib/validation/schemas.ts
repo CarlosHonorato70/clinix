@@ -39,7 +39,7 @@ export const agendamentoUpdateSchema = agendamentoCreateSchema.partial()
 export const consultaCreateSchema = z.object({
   agendamentoId: z.string().uuid().optional(),
   pacienteId: z.string().uuid('ID do paciente obrigatório'),
-  medicoId: z.string().uuid('ID do médico obrigatório'),
+  medicoId: z.string().uuid().optional(),
   anamnese: z.string().max(10000).optional(),
   exameFisico: z.string().max(10000).optional(),
   hipoteseDiagnostica: z.string().max(5000).optional(),

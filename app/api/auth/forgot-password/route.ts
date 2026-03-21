@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
 
   // Rate limit: same as login (5 req/15min per IP)
-  const rl = checkRateLimit(`forgot:${ip}`, RATE_LIMITS.login)
+  const rl = await checkRateLimit(`forgot:${ip}`, RATE_LIMITS.login)
   if (!rl.allowed) return rateLimitResponse(rl)
 
   const { email } = (await req.json()) as { email: string }

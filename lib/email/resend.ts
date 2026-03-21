@@ -79,6 +79,74 @@ export async function sendPasswordResetEmail(to: string, resetToken: string) {
   })
 }
 
+export async function sendInviteEmail(to: string, inviterName: string, clinicaNome: string, inviteToken: string) {
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.medflow.com.br'}/invite?token=${inviteToken}`
+
+  await getResend().emails.send({
+    from: FROM,
+    to,
+    subject: `${inviterName} convidou você para o MedFlow`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #8b5cf6; padding: 24px; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">MedFlow</h1>
+        </div>
+        <div style="padding: 32px; background: #f9fafb; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #111; margin-top: 0;">Você foi convidado!</h2>
+          <p style="color: #555; line-height: 1.6;">
+            <strong>${inviterName}</strong> convidou você para fazer parte da equipe da clínica
+            <strong>${clinicaNome}</strong> no MedFlow.
+          </p>
+          <p style="color: #555; line-height: 1.6;">
+            Clique no botão abaixo para criar sua senha e acessar o sistema.
+            Este convite expira em <strong>24 horas</strong>.
+          </p>
+          <a href="${inviteUrl}"
+             style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px;
+                    border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Aceitar convite
+          </a>
+          <p style="color: #999; font-size: 12px; margin-top: 32px;">
+            Se você não reconhece este convite, ignore este email.
+          </p>
+        </div>
+      </div>
+    `,
+  })
+}
+
+export async function sendVerificationEmail(to: string, userName: string, verifyToken: string) {
+  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.medflow.com.br'}/verify?token=${verifyToken}`
+
+  await getResend().emails.send({
+    from: FROM,
+    to,
+    subject: 'Confirme seu email — MedFlow',
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: #8b5cf6; padding: 24px; border-radius: 8px 8px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">MedFlow</h1>
+        </div>
+        <div style="padding: 32px; background: #f9fafb; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #111; margin-top: 0;">Confirme seu email</h2>
+          <p style="color: #555; line-height: 1.6;">
+            Olá <strong>${userName}</strong>, clique no botão abaixo para confirmar
+            seu email e ativar sua conta MedFlow.
+          </p>
+          <a href="${verifyUrl}"
+             style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px;
+                    border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Confirmar email
+          </a>
+          <p style="color: #999; font-size: 12px; margin-top: 32px;">
+            Se você não criou esta conta, ignore este email.
+          </p>
+        </div>
+      </div>
+    `,
+  })
+}
+
 export async function sendTrialExpiringEmail(to: string, clinicaNome: string, daysLeft: number) {
   await getResend().emails.send({
     from: FROM,

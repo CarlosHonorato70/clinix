@@ -11,6 +11,7 @@ export const usuarios = pgTable('usuarios', {
   crm: varchar('crm', { length: 30 }),
   especialidade: varchar('especialidade', { length: 100 }),
   corAgenda: varchar('cor_agenda', { length: 7 }),
+  emailVerificado: boolean('email_verificado').default(false).notNull(),
   ativo: boolean('ativo').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [

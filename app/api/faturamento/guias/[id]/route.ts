@@ -3,6 +3,8 @@ import { withAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { guiasTiss } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { validateBody, isValidationError } from '@/lib/validation/validate'
+import { guiaUpdateSchema } from '@/lib/validation/schemas'
 
 export const GET = withAuth(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split('/').pop()!
@@ -19,11 +21,13 @@ export const GET = withAuth(async (req: NextRequest, ctx) => {
 
 export const PUT = withAuth(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split('/').pop()!
-  const body = await req.json()
+
+  const result = await validateBody(req, guiaUpdateSchema)
+  if (isValidationError(result)) return result
 
   const [updated] = await db
     .update(guiasTiss)
-    .set(body)
+    .set(result)
     .where(and(eq(guiasTiss.id, id), eq(guiasTiss.tenantId, ctx.tenantId)))
     .returning()
 

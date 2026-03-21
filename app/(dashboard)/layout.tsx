@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { ToastProvider } from '@/components/ui/Toast'
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context'
@@ -197,7 +198,7 @@ const badgeStyles: Record<BadgeVariant, React.CSSProperties> = {
 }
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
-function Sidebar({ pathname }: { pathname: string }) {
+function Sidebar({ pathname, isOpen, onClose }: { pathname: string; isOpen: boolean; onClose: () => void }) {
   const { user } = useAuth()
   const { data: regrasData } = useApi<{ regras: unknown[] }>('/agente/regras')
   const regrasCount = regrasData?.regras?.length ?? 0
@@ -206,6 +207,18 @@ function Sidebar({ pathname }: { pathname: string }) {
   const userInitials = userName.split(' ').filter((w: string) => w.length > 1).slice(0, 2).map((w: string) => w[0]).join('').toUpperCase() || 'U'
 
   return (
+    <>
+    {/* Mobile overlay */}
+    {isOpen && (
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          zIndex: 39, display: 'none',
+        }}
+        className="sidebar-overlay"
+      />
+    )}
     <aside
       style={{
         width: 'var(--sidebar-w)',
@@ -220,7 +233,9 @@ function Sidebar({ pathname }: { pathname: string }) {
         top: 0,
         zIndex: 40,
         overflowY: 'auto',
+        transition: 'transform 0.25s ease',
       }}
+      className={isOpen ? 'sidebar-open' : 'sidebar-closed'}
     >
       {/* Brand */}
       <div
@@ -441,11 +456,12 @@ function Sidebar({ pathname }: { pathname: string }) {
         </div>
       </div>
     </aside>
+    </>
   )
 }
 
 // ─── Header ───────────────────────────────────────────────────────────────────
-function Header({ pathname }: { pathname: string }) {
+function Header({ pathname, onMenuClick }: { pathname: string; onMenuClick: () => void }) {
   const meta = routeMeta[pathname] ?? {
     title: 'MedFlow',
     subtitle: 'Sistema de Gestão Clínica',
@@ -467,6 +483,20 @@ function Header({ pathname }: { pathname: string }) {
         flexShrink: 0,
       }}
     >
+      {/* Mobile hamburger */}
+      <button
+        onClick={onMenuClick}
+        className="hamburger-btn"
+        style={{
+          display: 'none', width: 36, height: 36, borderRadius: 8,
+          background: 'transparent', border: '1px solid var(--border)',
+          color: 'var(--text)', fontSize: 18, cursor: 'pointer',
+          alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}
+      >
+        ☰
+      </button>
+
       {/* Title block */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
@@ -498,7 +528,7 @@ function Header({ pathname }: { pathname: string }) {
       </div>
 
       {/* Action buttons */}
-      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+      <div className="header-actions" style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
         {/* Ghost button */}
         <button
           style={{
@@ -568,10 +598,27 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname])
 
   return (
     <AuthProvider>
     <ToastProvider>
+      {/* Mobile responsive styles */}
+      <style>{`
+        @media (max-width: 768px) {
+          .sidebar-overlay { display: block !important; }
+          .sidebar-closed { transform: translateX(-100%); }
+          .sidebar-open { transform: translateX(0); }
+          .hamburger-btn { display: flex !important; }
+          .main-content { margin-left: 0 !important; }
+          .header-actions { display: none !important; }
+        }
+      `}</style>
       <div
         style={{
           display: 'flex',
@@ -579,10 +626,11 @@ export default function DashboardLayout({
           background: 'var(--bg)',
         }}
       >
-        <Sidebar pathname={pathname} />
+        <Sidebar pathname={pathname} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Main area shifted by sidebar width */}
         <div
+          className="main-content"
           style={{
             marginLeft: 'var(--sidebar-w)',
             flex: 1,
@@ -592,7 +640,7 @@ export default function DashboardLayout({
             minWidth: 0,
           }}
         >
-          <Header pathname={pathname} />
+          <Header pathname={pathname} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
           <main
             style={{

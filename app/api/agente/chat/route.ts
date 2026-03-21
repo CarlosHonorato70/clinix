@@ -6,7 +6,7 @@ import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/security/r
 
 export const POST = withAuth(async (req, ctx) => {
   // Rate limit agent chat per tenant
-  const rl = checkRateLimit(`agent:${ctx.tenantId}`, RATE_LIMITS.agentChat)
+  const rl = await checkRateLimit(`agent:${ctx.tenantId}`, RATE_LIMITS.agentChat)
   if (!rl.allowed) return rateLimitResponse(rl)
 
   const result = await validateBody(req, agenteChatSchema)

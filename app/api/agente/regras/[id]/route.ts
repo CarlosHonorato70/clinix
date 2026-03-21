@@ -3,14 +3,18 @@ import { withAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
 import { convenioRegrasAprendidas } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { validateBody, isValidationError } from '@/lib/validation/validate'
+import { regraUpdateSchema } from '@/lib/validation/schemas'
 
 export const PUT = withAuth(async (req: NextRequest, ctx) => {
   const id = req.nextUrl.pathname.split('/').pop()!
-  const body = await req.json()
+
+  const result = await validateBody(req, regraUpdateSchema)
+  if (isValidationError(result)) return result
 
   const [updated] = await db
     .update(convenioRegrasAprendidas)
-    .set({ ...body, updatedAt: new Date() })
+    .set({ ...result, updatedAt: new Date() })
     .where(
       and(
         eq(convenioRegrasAprendidas.id, id),

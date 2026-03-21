@@ -1,0 +1,47 @@
+{
+  "name": "MedFlow — Gestão Clínica Inteligente",
+  "short_name": "MedFlow",
+  "description": "Sistema de gestão clínica com IA integrada. Agenda, prontuário, faturamento TISS e auditoria automática.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#3b82f6",
+  "orientation": "any",
+  "categories": ["medical", "health", "business", "productivity"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Agenda",
+      "short_name": "Agenda",
+      "url": "/agenda",
+      "icons": []
+    },
+    {
+      "name": "Pacientes",
+      "short_name": "Pacientes",
+      "url": "/pacientes",
+      "icons": []
+    },
+    {
+      "name": "Faturamento",
+      "short_name": "Faturamento",
+      "url": "/faturamento",
+      "icons": []
+    }
+  ]
+}

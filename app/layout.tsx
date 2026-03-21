@@ -1,7 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import PostHogProvider from "@/components/providers/PostHogProvider";
 import "./globals.css";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.medflow.com.br'
+
+export const viewport: Viewport = {
+  themeColor: '#3b82f6',
+  width: 'device-width',
+  initialScale: 1,
+}
 
 export const metadata: Metadata = {
   title: {
@@ -13,6 +20,12 @@ export const metadata: Metadata = {
   authors: [{ name: 'MedFlow' }],
   creator: 'MedFlow',
   metadataBase: new URL(APP_URL),
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'MedFlow',
+  },
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
@@ -30,6 +43,10 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  icons: {
+    icon: '/icons/icon-192.svg',
+    apple: '/icons/icon-192.svg',
+  },
 };
 
 export default function RootLayout({
@@ -39,7 +56,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <head>
+        <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+      </head>
+      <body>
+        <PostHogProvider>
+          {children}
+        </PostHogProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function() {});
+                });
+              }
+            `,
+          }}
+        />
+      </body>
     </html>
   );
 }

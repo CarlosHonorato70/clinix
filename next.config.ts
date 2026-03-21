@@ -22,9 +22,10 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "worker-src 'self'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
-              "connect-src 'self' https://api.openai.com",
+              "connect-src 'self' https://api.openai.com https://*.posthog.com https://*.i.posthog.com",
               "font-src 'self'",
               "frame-ancestors 'none'",
               "base-uri 'self'",

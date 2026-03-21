@@ -55,7 +55,7 @@ test.describe('Navigation', () => {
   test('should show user info in sidebar footer', async ({ page }) => {
     const sidebar = page.locator('aside')
 
-    await expect(sidebar.getByText('Admin MedFlow')).toBeVisible()
+    await expect(sidebar.getByText('Admin Clinix')).toBeVisible()
     await expect(sidebar.getByText('Administrador')).toBeVisible()
   })
 
@@ -68,9 +68,9 @@ test.describe('Navigation', () => {
     await expect(page.getByRole('button', { name: /Faturar com IA/ })).toBeVisible()
   })
 
-  test('should show MedFlow brand in sidebar', async ({ page }) => {
+  test('should show Clinix brand in sidebar', async ({ page }) => {
     const sidebar = page.locator('aside')
-    await expect(sidebar.getByText('MedFlow')).toBeVisible()
+    await expect(sidebar.getByText('Clinix')).toBeVisible()
     await expect(sidebar.getByText('v2.0 · IA integrada')).toBeVisible()
   })
 })

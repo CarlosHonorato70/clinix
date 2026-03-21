@@ -3,7 +3,7 @@ import { hashPassword, verifyPassword } from '../password'
 
 describe('Password', () => {
   it('should hash and verify correctly', async () => {
-    const password = 'medflow123'
+    const password = 'clinix123'
     const hash = await hashPassword(password)
 
     expect(hash).not.toBe(password)

@@ -5,8 +5,8 @@ import { blacklistToken } from '@/lib/auth/token-blacklist'
 export async function POST() {
   try {
     const cookieStore = await cookies()
-    const refreshToken = cookieStore.get('medflow-refresh-token')?.value
-    const accessToken = cookieStore.get('medflow-access-token')?.value
+    const refreshToken = cookieStore.get('clinix-refresh-token')?.value
+    const accessToken = cookieStore.get('clinix-access-token')?.value
 
     // Blacklist both tokens for their remaining TTL
     if (refreshToken) {

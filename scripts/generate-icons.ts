@@ -1,5 +1,5 @@
 /**
- * Generate PWA icons for MedFlow.
+ * Generate PWA icons for Clinix.
  * Run: npx tsx scripts/generate-icons.ts
  *
  * Creates icon-192.png and icon-512.png in public/icons/
@@ -26,7 +26,7 @@ function generateSVG(size: number): string {
   <rect width="${size}" height="${size}" rx="${borderRadius}" fill="url(#bg)"/>
   <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
     font-family="system-ui, -apple-system, sans-serif" font-size="${fontSize}"
-    font-weight="700" fill="white" letter-spacing="-0.02em">M</text>
+    font-weight="700" fill="white" letter-spacing="-0.02em">C</text>
 </svg>`
 }
 

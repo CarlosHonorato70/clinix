@@ -59,7 +59,7 @@ export const POST = withAuth(async (req, user) => {
   const prestador: Prestador = {
     cnpj: '00000000000000',
     codigoPrestador: '000000',
-    nomeContratado: 'Clínica MedFlow',
+    nomeContratado: 'Clínica Clinix',
     cnes: '0000000',
   }
 

@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const token = request.cookies.get('medflow-access-token')?.value
+  const token = request.cookies.get('clinix-access-token')?.value
 
   if (!token) {
     // API routes → 401 JSON
@@ -76,7 +76,7 @@ export async function middleware(request: NextRequest) {
     // Clear invalid cookie and redirect
     const loginUrl = new URL('/login', request.url)
     const response = NextResponse.redirect(loginUrl)
-    response.cookies.delete('medflow-access-token')
+    response.cookies.delete('clinix-access-token')
     return response
   }
 }

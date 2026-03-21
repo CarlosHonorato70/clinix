@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-echo "[MedFlow] Running database migrations..."
-npx drizzle-kit migrate 2>&1 || echo "[MedFlow] WARNING: Migration failed, continuing..."
+echo "[Clinix] Running database migrations..."
+npx drizzle-kit migrate 2>&1 || echo "[Clinix] WARNING: Migration failed, continuing..."
 
-echo "[MedFlow] Starting application..."
+echo "[Clinix] Starting application..."
 exec node server.js

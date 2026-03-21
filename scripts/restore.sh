@@ -1,5 +1,5 @@
 #!/bin/bash
-# MedFlow — Restauração de backup PostgreSQL
+# Clinix — Restauração de backup PostgreSQL
 # Uso: ./scripts/restore.sh /caminho/para/backup.dump
 
 set -euo pipefail
@@ -8,7 +8,7 @@ if [ -z "${1:-}" ]; then
   echo "Uso: $0 <arquivo_backup.dump>"
   echo ""
   echo "Backups disponíveis:"
-  ls -lh "${BACKUP_DIR:-/opt/medflow/backups}"/*.dump 2>/dev/null || echo "  Nenhum backup encontrado"
+  ls -lh "${BACKUP_DIR:-/opt/clinix/backups}"/*.dump 2>/dev/null || echo "  Nenhum backup encontrado"
   exit 1
 fi
 
@@ -31,12 +31,12 @@ fi
 
 echo "[$(date)] Iniciando restauração..."
 
-docker exec -i medflow-db pg_restore \
+docker exec -i clinix-db pg_restore \
   --clean \
   --if-exists \
   --no-owner \
-  -U "${POSTGRES_USER:-medflow}" \
-  -d "${POSTGRES_DB:-medflow}" \
+  -U "${POSTGRES_USER:-clinix}" \
+  -d "${POSTGRES_DB:-clinix}" \
   < "$BACKUP_FILE"
 
 echo "[$(date)] Restauração concluída com sucesso"

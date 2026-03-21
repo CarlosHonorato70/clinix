@@ -102,7 +102,7 @@ export default function InvitePage() {
           {info && (
             <p style={{ fontSize: 13, color: '#71717a', marginTop: 8 }}>
               Bem-vindo, <strong style={{ color: '#a1a1aa' }}>{info.nome}</strong>!<br />
-              Crie sua senha para acessar o MedFlow.
+              Crie sua senha para acessar o Clinix.
             </p>
           )}
         </div>

@@ -1,5 +1,5 @@
 /**
- * MedFlow — Gateway TISS
+ * Clinix — Gateway TISS
  *
  * Cliente SOAP unificado para todas as transações TISS com operadoras.
  * Suporta: envio de lote de guias, elegibilidade, solicitação de procedimento,

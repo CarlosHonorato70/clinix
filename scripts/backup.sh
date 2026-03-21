@@ -1,23 +1,23 @@
 #!/bin/bash
-# MedFlow — Backup automatizado do PostgreSQL
-# Execute via cron: 0 3 * * * /opt/medflow/scripts/backup.sh
+# Clinix — Backup automatizado do PostgreSQL
+# Execute via cron: 0 3 * * * /opt/clinix/scripts/backup.sh
 
 set -euo pipefail
 
-BACKUP_DIR="${BACKUP_DIR:-/opt/medflow/backups}"
+BACKUP_DIR="${BACKUP_DIR:-/opt/clinix/backups}"
 RETENTION_DAYS="${RETENTION_DAYS:-30}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/medflow_$TIMESTAMP.dump"
+BACKUP_FILE="$BACKUP_DIR/clinix_$TIMESTAMP.dump"
 
 mkdir -p "$BACKUP_DIR"
 
 echo "[$(date)] Iniciando backup..."
 
-docker exec medflow-db pg_dump \
+docker exec clinix-db pg_dump \
   --format=custom \
   --compress=9 \
-  -U "${POSTGRES_USER:-medflow}" \
-  "${POSTGRES_DB:-medflow}" \
+  -U "${POSTGRES_USER:-clinix}" \
+  "${POSTGRES_DB:-clinix}" \
   > "$BACKUP_FILE"
 
 SIZE=$(du -h "$BACKUP_FILE" | cut -f1)

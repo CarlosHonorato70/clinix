@@ -47,7 +47,7 @@ export const POST = withAuth(async (req, ctx) => {
   const [inviter] = await db.select({ nome: usuarios.nome }).from(usuarios).where(eq(usuarios.id, ctx.userId)).limit(1)
 
   // Send invite email (fire-and-forget with error handling)
-  sendInviteEmail(email, inviter?.nome ?? 'Admin', tenant?.nome ?? 'MedFlow', inviteToken).catch(() => {})
+  sendInviteEmail(email, inviter?.nome ?? 'Admin', tenant?.nome ?? 'Clinix', inviteToken).catch(() => {})
 
   writeAuditLog({
     tenantId: ctx.tenantId,

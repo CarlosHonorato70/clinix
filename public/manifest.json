@@ -1,6 +1,6 @@
 {
-  "name": "MedFlow — Gestão Clínica Inteligente",
-  "short_name": "MedFlow",
+  "name": "Clinix — Gestão Clínica Inteligente",
+  "short_name": "Clinix",
   "description": "Sistema de gestão clínica com IA integrada. Agenda, prontuário, faturamento TISS e auditoria automática.",
   "start_url": "/",
   "display": "standalone",

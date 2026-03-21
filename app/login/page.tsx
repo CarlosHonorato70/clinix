@@ -90,7 +90,7 @@ export default function LoginPage() {
               M
             </div>
             <span style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)' }}>
-              MedFlow
+              Clinix
             </span>
           </div>
           <p style={{ color: 'var(--text2)', fontSize: 14 }}>
@@ -208,7 +208,7 @@ export default function LoginPage() {
             marginTop: 24,
           }}
         >
-          Dev: admin@medflow.dev / medflow123
+          Dev: admin@clinix.dev / clinix123
         </p>
       </form>
     </div>

@@ -64,7 +64,7 @@ export default function AssinaturaPage() {
               borderRadius: 8, fontSize: 13, color: '#fbbf24',
             }}>
               ⏰ Seu período de teste expira em {new Date(tenant.trialEndsAt).toLocaleDateString('pt-BR')}.
-              Escolha um plano para continuar usando o MedFlow.
+              Escolha um plano para continuar usando o Clinix.
             </div>
           )}
         </div>
@@ -126,7 +126,7 @@ export default function AssinaturaPage() {
                       borderRadius: 8, color: '#34d399', fontSize: 13, fontWeight: 600,
                     }}>Plano atual</div>
                   ) : plan.preco === -1 ? (
-                    <a href="mailto:vendas@medflow.com.br" style={{
+                    <a href="mailto:vendas@clinix.com.br" style={{
                       display: 'block', width: '100%', padding: '10px 0', textAlign: 'center',
                       background: 'transparent', border: '1px solid var(--border)', borderRadius: 8,
                       color: 'var(--text2)', fontSize: 13, fontWeight: 500, textDecoration: 'none',

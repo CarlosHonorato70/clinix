@@ -42,7 +42,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'init-0',
     role: 'agent',
-    content: 'Olá! Sou o <strong>Agente IA do MedFlow</strong>. Posso ajudar com análise de glosas, faturamento TISS, agenda médica, pacientes de risco e relatórios financeiros. O que você precisa hoje?',
+    content: 'Olá! Sou o <strong>Agente IA do Clinix</strong>. Posso ajudar com análise de glosas, faturamento TISS, agenda médica, pacientes de risco e relatórios financeiros. O que você precisa hoje?',
   },
 ]
 

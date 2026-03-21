@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// MedFlow – Central seed data file
+// Clinix – Central seed data file
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -524,7 +524,7 @@ export const AGENT_RESPONSES: AgentResponse[] = [
   {
     keywords: ['oi', 'olá', 'ola', 'bom dia', 'boa tarde', 'boa noite', 'hello', 'hi'],
     response:
-      'Olá! Sou o Agente IA do MedFlow. Posso ajudar com análise de glosas, faturamento TISS, agenda médica, pacientes de risco e relatórios financeiros. O que você precisa hoje?',
+      'Olá! Sou o Agente IA do Clinix. Posso ajudar com análise de glosas, faturamento TISS, agenda médica, pacientes de risco e relatórios financeiros. O que você precisa hoje?',
   },
   {
     keywords: ['obrigado', 'obrigada', 'valeu', 'thanks'],

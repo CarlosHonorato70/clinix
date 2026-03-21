@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm'
 export async function POST() {
   try {
     const cookieStore = await cookies()
-    const refreshToken = cookieStore.get('medflow-refresh-token')?.value
+    const refreshToken = cookieStore.get('clinix-refresh-token')?.value
 
     if (!refreshToken) {
       return Response.json({ error: 'Refresh token não encontrado' }, { status: 401 })
@@ -37,7 +37,7 @@ export async function POST() {
     const headers = new Headers({ 'Content-Type': 'application/json' })
     headers.append(
       'Set-Cookie',
-      `medflow-access-token=${accessToken}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/; Max-Age=900`
+      `clinix-access-token=${accessToken}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/; Max-Age=900`
     )
 
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers })

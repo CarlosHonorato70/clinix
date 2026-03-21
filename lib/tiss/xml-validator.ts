@@ -1,5 +1,5 @@
 /**
- * MedFlow — Validador de Guias TISS
+ * Clinix — Validador de Guias TISS
  *
  * Valida campos obrigatórios, formatos de códigos e regras de negócio
  * antes da geração do XML e envio às operadoras.

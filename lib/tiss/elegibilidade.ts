@@ -1,5 +1,5 @@
 /**
- * MedFlow — Verificação de Elegibilidade TISS
+ * Clinix — Verificação de Elegibilidade TISS
  *
  * Verifica se o beneficiário está ativo no convênio antes do atendimento.
  * Usa o Web Service TISS (SOAP/XML) quando disponível, com fallback

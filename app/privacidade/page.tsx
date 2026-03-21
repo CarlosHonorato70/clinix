@@ -1,6 +1,6 @@
 import Link from 'next/link'
 
-export const metadata = { title: 'Política de Privacidade — MedFlow' }
+export const metadata = { title: 'Política de Privacidade — Clinix' }
 
 const s = {
   page: { overflow: 'auto' as const, height: '100vh', padding: '40px' },
@@ -29,17 +29,17 @@ export default function PrivacidadePage() {
         <div style={s.nav}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={s.logo}>M</div>
-            <span style={{ fontWeight: 600, fontSize: 16, color: 'var(--text)' }}>MedFlow</span>
+            <span style={{ fontWeight: 600, fontSize: 16, color: 'var(--text)' }}>Clinix</span>
           </Link>
         </div>
 
         <h1 style={s.h1}>Política de Privacidade</h1>
         <p style={s.updated}>Última atualização: março de 2026</p>
 
-        <p style={s.p}>Esta Política de Privacidade descreve como o MedFlow coleta, utiliza, armazena e protege os dados pessoais dos usuários e pacientes, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).</p>
+        <p style={s.p}>Esta Política de Privacidade descreve como o Clinix coleta, utiliza, armazena e protege os dados pessoais dos usuários e pacientes, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).</p>
 
         <h2 style={s.h2}>1. Controlador e Operador de Dados</h2>
-        <p style={s.p}>A clínica (tenant) é a Controladora dos dados de seus pacientes. O MedFlow atua como Operador, processando os dados conforme as instruções do Controlador e em conformidade com a LGPD.</p>
+        <p style={s.p}>A clínica (tenant) é a Controladora dos dados de seus pacientes. O Clinix atua como Operador, processando os dados conforme as instruções do Controlador e em conformidade com a LGPD.</p>
 
         <h2 style={s.h2}>2. Dados Coletados</h2>
         <p style={s.p}>Coletamos os seguintes tipos de dados:</p>
@@ -78,7 +78,7 @@ export default function PrivacidadePage() {
         <p style={s.p}>O exercício desses direitos pode ser realizado diretamente pelo sistema (menu LGPD) ou por contato com o DPO da clínica.</p>
 
         <h2 style={s.h2}>9. Inteligência Artificial</h2>
-        <p style={s.p}>O MedFlow utiliza IA para análise de regras de convênios e auditoria. Os dados enviados à IA são processados de forma segura e não são utilizados para treinamento de modelos. As decisões automatizadas são sempre revisáveis por humanos.</p>
+        <p style={s.p}>O Clinix utiliza IA para análise de regras de convênios e auditoria. Os dados enviados à IA são processados de forma segura e não são utilizados para treinamento de modelos. As decisões automatizadas são sempre revisáveis por humanos.</p>
 
         <h2 style={s.h2}>10. Contato</h2>
         <p style={s.p}>Para questões sobre esta política ou exercício de direitos como titular de dados, entre em contato pelo email de suporte disponível no painel do sistema.</p>

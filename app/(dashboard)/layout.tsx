@@ -264,7 +264,7 @@ function Sidebar({ pathname, isOpen, onClose }: { pathname: string; isOpen: bool
           </div>
           <div>
             <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text)' }}>
-              MedFlow
+              Clinix
             </div>
             <div
               style={{
@@ -464,7 +464,7 @@ function Sidebar({ pathname, isOpen, onClose }: { pathname: string; isOpen: bool
 // ─── Header ───────────────────────────────────────────────────────────────────
 function Header({ pathname, onMenuClick }: { pathname: string; onMenuClick: () => void }) {
   const meta = routeMeta[pathname] ?? {
-    title: 'MedFlow',
+    title: 'Clinix',
     subtitle: 'Sistema de Gestão Clínica',
   }
 

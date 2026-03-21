@@ -1,5 +1,5 @@
 /**
- * MedFlow — Validador XSD TISS (Homologação ANS)
+ * Clinix — Validador XSD TISS (Homologação ANS)
  *
  * Valida XML gerado contra os schemas XSD oficiais da ANS.
  * Usado para garantir conformidade antes do envio às operadoras.

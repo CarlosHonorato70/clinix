@@ -1,18 +1,18 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║  MedFlow — Deploy Script                                       ║
+# ║  Clinix — Deploy Script                                       ║
 # ║  Execute a cada novo deploy para atualizar a aplicação          ║
 # ╚══════════════════════════════════════════════════════════════════╝
 
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/medflow}"
-DOMAIN="${DOMAIN:-app.medflow.com.br}"
+APP_DIR="${APP_DIR:-/opt/clinix}"
+DOMAIN="${DOMAIN:-app.clinix.com.br}"
 
 cd "$APP_DIR"
 
 echo "╔═══════════════════════════════════════╗"
-echo "║  MedFlow — Deploy                     ║"
+echo "║  Clinix — Deploy                     ║"
 echo "╚═══════════════════════════════════════╝"
 
 # ─── 1. Pull latest code ─────────────────────────────────────────

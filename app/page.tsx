@@ -118,7 +118,7 @@ const faqs = [
   },
   {
     pergunta: 'O sistema gera guias TISS automaticamente?',
-    resposta: 'Sim! O MedFlow gera guias TISS de consulta, SP/SADT e internação automaticamente a partir dos dados do atendimento, com validação integrada.',
+    resposta: 'Sim! O Clinix gera guias TISS de consulta, SP/SADT e internação automaticamente a partir dos dados do atendimento, com validação integrada.',
   },
   {
     pergunta: 'A IA substitui o trabalho do faturista?',
@@ -145,7 +145,7 @@ export default function LandingPage() {
             alignItems: 'center', justifyContent: 'center',
             fontWeight: 700, fontSize: 16, color: '#fff',
           }}>M</div>
-          <span style={{ fontWeight: 600, fontSize: 18 }}>MedFlow</span>
+          <span style={{ fontWeight: 600, fontSize: 18 }}>Clinix</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Link href="/login" style={{
@@ -369,7 +369,7 @@ export default function LandingPage() {
             fontWeight: 700, fontSize: 12, color: '#fff',
           }}>M</div>
           <span style={{ fontSize: 13, color: 'var(--text3)' }}>
-            MedFlow &copy; {new Date().getFullYear()}
+            Clinix &copy; {new Date().getFullYear()}
           </span>
         </div>
         <div style={{ display: 'flex', gap: 24 }}>

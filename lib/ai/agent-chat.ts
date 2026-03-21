@@ -40,7 +40,7 @@ export async function processAgentMessage(
       messages: [
         {
           role: 'system',
-          content: `Você é o Agente IA do MedFlow, sistema de gestão clínica. Ajude com análise de glosas, faturamento TISS, agenda médica, pacientes de risco e relatórios financeiros. Responda em português brasileiro de forma profissional e concisa.${rulesContext}`,
+          content: `Você é o Agente IA do Clinix, sistema de gestão clínica. Ajude com análise de glosas, faturamento TISS, agenda médica, pacientes de risco e relatórios financeiros. Responda em português brasileiro de forma profissional e concisa.${rulesContext}`,
         },
         { role: 'user', content: message },
       ],

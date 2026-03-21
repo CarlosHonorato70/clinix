@@ -1,6 +1,6 @@
 #!/bin/bash
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║  MedFlow — Setup DigitalOcean Droplet                          ║
+# ║  Clinix — Setup DigitalOcean Droplet                          ║
 # ║  Execute uma vez no servidor novo para configurar tudo          ║
 # ║                                                                  ║
 # ║  Requisitos: Ubuntu 22.04+, 4GB RAM, 2 vCPU                    ║
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 echo "╔═══════════════════════════════════════╗"
-echo "║  MedFlow — Configuração do Servidor   ║"
+echo "║  Clinix — Configuração do Servidor   ║"
 echo "╚═══════════════════════════════════════╝"
 
 # ─── 1. Atualizar sistema ────────────────────────────────────────
@@ -31,19 +31,19 @@ fi
 
 echo "Docker version: $(docker --version)"
 
-# ─── 3. Criar usuário medflow ────────────────────────────────────
-echo "[3/7] Criando usuário medflow..."
-if ! id "medflow" &>/dev/null; then
-  useradd -m -s /bin/bash -G docker medflow
-  echo "Usuário medflow criado"
+# ─── 3. Criar usuário clinix ────────────────────────────────────
+echo "[3/7] Criando usuário clinix..."
+if ! id "clinix" &>/dev/null; then
+  useradd -m -s /bin/bash -G docker clinix
+  echo "Usuário clinix criado"
 else
-  echo "Usuário medflow já existe"
+  echo "Usuário clinix já existe"
 fi
 
 # ─── 4. Criar diretórios ─────────────────────────────────────────
 echo "[4/7] Criando diretórios..."
-mkdir -p /opt/medflow/{backups,nginx,certbot}
-chown -R medflow:medflow /opt/medflow
+mkdir -p /opt/clinix/{backups,nginx,certbot}
+chown -R clinix:clinix /opt/clinix
 
 # ─── 5. Configurar firewall ──────────────────────────────────────
 echo "[5/7] Configurando firewall..."
@@ -73,7 +73,7 @@ echo "╔═══════════════════════�
 echo "║  Setup concluído!                     ║"
 echo "║                                       ║"
 echo "║  Próximos passos:                     ║"
-echo "║  1. Clone o repo em /opt/medflow      ║"
+echo "║  1. Clone o repo em /opt/clinix      ║"
 echo "║  2. Copie .env.production.template    ║"
 echo "║     para .env.production              ║"
 echo "║  3. Edite .env.production             ║"

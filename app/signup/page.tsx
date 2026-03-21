@@ -129,7 +129,7 @@ export default function SignupPage() {
                 color: '#71717a',
                 fontSize: 13,
                 whiteSpace: 'nowrap',
-              }}>.medflow.com.br</span>
+              }}>.clinix.com.br</span>
             </div>
           </div>
 

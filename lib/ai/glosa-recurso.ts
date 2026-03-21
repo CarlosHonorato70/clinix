@@ -1,5 +1,5 @@
 /**
- * MedFlow — Gerador de Argumentação IA para Recurso de Glosa
+ * Clinix — Gerador de Argumentação IA para Recurso de Glosa
  *
  * Usa GPT-4o para gerar texto de contestação baseado no motivo da glosa,
  * regras aprendidas do convênio e histórico de glosas similares.

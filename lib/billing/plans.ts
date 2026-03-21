@@ -17,7 +17,7 @@ export const PLANS: Plan[] = [
     id: 'trial',
     nome: 'Trial',
     preco: 0,
-    descricao: '14 dias grátis para conhecer o MedFlow',
+    descricao: '14 dias grátis para conhecer o Clinix',
     limites: { usuarios: 2, pacientes: 50, auditoriasIa: 10, apiAccess: false },
     features: [
       'Dashboard completo',

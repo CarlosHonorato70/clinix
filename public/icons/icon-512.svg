@@ -8,5 +8,5 @@
   <rect width="512" height="512" rx="113" fill="url(#bg)"/>
   <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
     font-family="system-ui, -apple-system, sans-serif" font-size="230"
-    font-weight="700" fill="white" letter-spacing="-0.02em">M</text>
+    font-weight="700" fill="white" letter-spacing="-0.02em">C</text>
 </svg>

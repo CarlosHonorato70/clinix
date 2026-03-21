@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: medflow-app
+    container_name: clinix-app
     restart: always
     env_file: .env.production
     depends_on:
@@ -12,7 +12,7 @@ services:
       redis:
         condition: service_started
     networks:
-      - medflow
+      - clinix
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
       interval: 30s
@@ -22,35 +22,35 @@ services:
 
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: medflow-db
+    container_name: clinix-db
     restart: always
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-medflow}
-      POSTGRES_USER: ${POSTGRES_USER:-medflow}
+      POSTGRES_DB: ${POSTGRES_DB:-clinix}
+      POSTGRES_USER: ${POSTGRES_USER:-clinix}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - medflow
+      - clinix
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medflow}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clinix}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: medflow-redis
+    container_name: clinix-redis
     restart: always
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
       - redisdata:/data
     networks:
-      - medflow
+      - clinix
 
   nginx:
     image: nginx:alpine
-    container_name: medflow-nginx
+    container_name: clinix-nginx
     restart: always
     ports:
       - "80:80"
@@ -62,11 +62,11 @@ services:
     depends_on:
       - app
     networks:
-      - medflow
+      - clinix
 
   certbot:
     image: certbot/certbot
-    container_name: medflow-certbot
+    container_name: clinix-certbot
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
@@ -74,30 +74,30 @@ services:
 
   backup:
     image: alpine:3.20
-    container_name: medflow-backup
+    container_name: clinix-backup
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-medflow}
+      POSTGRES_USER: ${POSTGRES_USER:-clinix}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-medflow}
-      DB_HOST: medflow-db
+      POSTGRES_DB: ${POSTGRES_DB:-clinix}
+      DB_HOST: clinix-db
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-sa-east-1}
       S3_BACKUP_BUCKET: ${S3_BACKUP_BUCKET:-}
     volumes:
-      - ./scripts/backup-s3.sh:/opt/medflow/scripts/backup-s3.sh:ro
-      - backups:/tmp/medflow-backups
+      - ./scripts/backup-s3.sh:/opt/clinix/scripts/backup-s3.sh:ro
+      - backups:/tmp/clinix-backups
     networks:
-      - medflow
+      - clinix
     entrypoint: |
       /bin/sh -c '
         apk add --no-cache postgresql16-client aws-cli bash
-        chmod +x /opt/medflow/scripts/backup-s3.sh
-        echo "0 3 * * * /opt/medflow/scripts/backup-s3.sh >> /var/log/backup.log 2>&1" | crontab -
+        chmod +x /opt/clinix/scripts/backup-s3.sh
+        echo "0 3 * * * /opt/clinix/scripts/backup-s3.sh >> /var/log/backup.log 2>&1" | crontab -
         crond -f -l 2
       '
 
@@ -109,5 +109,5 @@ volumes:
   backups:
 
 networks:
-  medflow:
+  clinix:
     driver: bridge

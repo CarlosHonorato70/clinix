@@ -1,5 +1,5 @@
 /**
- * MedFlow — Módulo TISS
+ * Clinix — Módulo TISS
  *
  * Motor completo de faturamento TISS v4.02 com:
  * - Geração de XML (guias consulta, SP/SADT, lotes)

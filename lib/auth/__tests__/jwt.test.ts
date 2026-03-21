@@ -11,7 +11,7 @@ describe('JWT', () => {
     userId: '123e4567-e89b-12d3-a456-426614174000',
     tenantId: '223e4567-e89b-12d3-a456-426614174000',
     role: 'admin',
-    email: 'test@medflow.dev',
+    email: 'test@clinix.dev',
   }
 
   it('should sign and verify access token', async () => {

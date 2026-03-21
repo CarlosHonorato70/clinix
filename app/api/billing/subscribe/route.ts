@@ -58,7 +58,7 @@ export const POST = withAuth(async (req, ctx) => {
       value: plan.preco,
       cycle: 'MONTHLY',
       nextDueDate: dueDateStr,
-      description: `MedFlow - Plano ${plan.nome}`,
+      description: `Clinix - Plano ${plan.nome}`,
     })
 
     // Update tenant

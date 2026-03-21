@@ -1,4 +1,4 @@
-# MedFlow — Guia de Deploy (DigitalOcean)
+# Clinix — Guia de Deploy (DigitalOcean)
 
 ## 1. Criar Droplet
 
@@ -8,19 +8,19 @@
    - **Plan**: Basic → Regular → **$24/mo** (2 vCPU, 4 GB RAM, 80 GB SSD)
    - **Region**: São Paulo (NYC se SP indisponível)
    - **Auth**: SSH Key (recomendado) ou senha
-   - **Hostname**: `medflow-prod`
+   - **Hostname**: `clinix-prod`
 3. Anote o IP público (ex: `143.198.xxx.xxx`)
 
 ## 2. Registrar Domínio
 
 ### Opção A: Registro.br (recomendado para .com.br)
 1. Acesse [registro.br](https://registro.br)
-2. Pesquise `medflow.com.br`
+2. Pesquise `clinix.com.br`
 3. Registre (~R$ 40/ano)
 4. Em DNS, adicione:
    - **A** `@` → `IP_DO_DROPLET`
    - **A** `app` → `IP_DO_DROPLET`
-   - **CNAME** `www` → `medflow.com.br`
+   - **CNAME** `www` → `clinix.com.br`
 
 ### Opção B: Cloudflare (DNS gratuito + CDN)
 1. Registre em qualquer registrador
@@ -34,8 +34,8 @@
 ssh root@IP_DO_DROPLET
 
 # Baixar e executar setup
-git clone https://github.com/CarlosHonorato70/medflow.git /opt/medflow
-cd /opt/medflow
+git clone https://github.com/CarlosHonorato70/clinix.git /opt/clinix
+cd /opt/clinix
 chmod +x deploy/*.sh
 ./deploy/setup-droplet.sh
 ```
@@ -43,7 +43,7 @@ chmod +x deploy/*.sh
 ## 4. Configurar Ambiente
 
 ```bash
-cd /opt/medflow
+cd /opt/clinix
 
 # Copiar template
 cp .env.production.template .env.production
@@ -64,27 +64,27 @@ ENCRYPTION_KEY=<sua-chave-hex-64-chars>
 
 # Senha do PostgreSQL
 POSTGRES_PASSWORD=<senha-forte-aqui>
-DATABASE_URL=postgresql://medflow:<senha-forte-aqui>@postgres:5432/medflow
+DATABASE_URL=postgresql://clinix:<senha-forte-aqui>@postgres:5432/clinix
 
 # OpenAI (para IA)
 OPENAI_API_KEY=sk-...
 
 # URL da aplicação
-NEXT_PUBLIC_APP_URL=https://app.medflow.com.br
+NEXT_PUBLIC_APP_URL=https://app.clinix.com.br
 ```
 
 ## 5. Deploy
 
 ```bash
-cd /opt/medflow
+cd /opt/clinix
 ./deploy/deploy.sh
 ```
 
-Após ~2 minutos, acesse: `https://app.medflow.com.br`
+Após ~2 minutos, acesse: `https://app.clinix.com.br`
 
 ## 6. Primeiro Acesso
 
-1. Acesse `https://app.medflow.com.br/signup`
+1. Acesse `https://app.clinix.com.br/signup`
 2. Crie sua clínica
 3. Pronto — você é o primeiro usuário admin
 
@@ -98,7 +98,7 @@ docker compose -f docker-compose.prod.yml logs -f app
 docker compose -f docker-compose.prod.yml ps
 
 # Health check
-curl https://app.medflow.com.br/api/health
+curl https://app.clinix.com.br/api/health
 ```
 
 ## 8. Backup
@@ -107,10 +107,10 @@ Backups automáticos rodam diariamente às 3h (container `backup`).
 
 ```bash
 # Backup manual
-docker exec medflow-db pg_dump -U medflow medflow > backup_$(date +%Y%m%d).sql
+docker exec clinix-db pg_dump -U clinix clinix > backup_$(date +%Y%m%d).sql
 
 # Restaurar
-docker exec -i medflow-db psql -U medflow medflow < backup_20260321.sql
+docker exec -i clinix-db psql -U clinix clinix < backup_20260321.sql
 ```
 
 ## Custos Mensais Estimados

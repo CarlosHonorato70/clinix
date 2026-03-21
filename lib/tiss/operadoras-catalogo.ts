@@ -1,5 +1,5 @@
 /**
- * MedFlow — Catálogo de Operadoras de Saúde Brasileiras
+ * Clinix — Catálogo de Operadoras de Saúde Brasileiras
  *
  * Catálogo pré-configurado com endpoints TISS conhecidos,
  * instruções de credenciamento e dados de contato.

@@ -1,18 +1,18 @@
 #!/bin/bash
-# MedFlow — Backup PostgreSQL com upload para S3
+# Clinix — Backup PostgreSQL com upload para S3
 # Roda via cron dentro do container 'backup' no docker-compose
-# Cron: 0 3 * * * /opt/medflow/scripts/backup-s3.sh
+# Cron: 0 3 * * * /opt/clinix/scripts/backup-s3.sh
 
 set -euo pipefail
 
-BACKUP_DIR="${BACKUP_DIR:-/tmp/medflow-backups}"
+BACKUP_DIR="${BACKUP_DIR:-/tmp/clinix-backups}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="$BACKUP_DIR/medflow_$TIMESTAMP.dump"
-S3_BUCKET="${S3_BACKUP_BUCKET:-medflow-backups}"
-DB_HOST="${DB_HOST:-medflow-db}"
-DB_USER="${POSTGRES_USER:-medflow}"
-DB_NAME="${POSTGRES_DB:-medflow}"
+BACKUP_FILE="$BACKUP_DIR/clinix_$TIMESTAMP.dump"
+S3_BUCKET="${S3_BACKUP_BUCKET:-clinix-backups}"
+DB_HOST="${DB_HOST:-clinix-db}"
+DB_USER="${POSTGRES_USER:-clinix}"
+DB_NAME="${POSTGRES_DB:-clinix}"
 
 mkdir -p "$BACKUP_DIR"
 
@@ -33,7 +33,7 @@ echo "[$(date)] Dump criado: $BACKUP_FILE ($SIZE)"
 # Upload to S3
 if [ -n "${AWS_ACCESS_KEY_ID:-}" ] && [ -n "${S3_BACKUP_BUCKET:-}" ]; then
   echo "[$(date)] Enviando para S3: s3://$S3_BUCKET/..."
-  aws s3 cp "$BACKUP_FILE" "s3://$S3_BUCKET/daily/medflow_$TIMESTAMP.dump" --quiet
+  aws s3 cp "$BACKUP_FILE" "s3://$S3_BUCKET/daily/clinix_$TIMESTAMP.dump" --quiet
 
   # Tag with expiration (lifecycle policy handles deletion)
   echo "[$(date)] Upload S3 concluído"

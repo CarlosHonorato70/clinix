@@ -5,12 +5,12 @@ export function setAuthCookies(response: Response, accessToken: string, refreshT
 
   headers.append(
     'Set-Cookie',
-    `medflow-access-token=${accessToken}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/; Max-Age=900`
+    `clinix-access-token=${accessToken}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/; Max-Age=900`
   )
 
   headers.append(
     'Set-Cookie',
-    `medflow-refresh-token=${refreshToken}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/api/auth/refresh; Max-Age=604800`
+    `clinix-refresh-token=${refreshToken}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/api/auth/refresh; Max-Age=604800`
   )
 
   return new Response(response.body, {
@@ -25,12 +25,12 @@ export function clearAuthCookies(): Response {
 
   headers.append(
     'Set-Cookie',
-    `medflow-access-token=; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/; Max-Age=0`
+    `clinix-access-token=; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/; Max-Age=0`
   )
 
   headers.append(
     'Set-Cookie',
-    `medflow-refresh-token=; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/api/auth/refresh; Max-Age=0`
+    `clinix-refresh-token=; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Strict; Path=/api/auth/refresh; Max-Age=0`
   )
 
   return new Response(JSON.stringify({ ok: true }), {

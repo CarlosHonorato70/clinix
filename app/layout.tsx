@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import PostHogProvider from "@/components/providers/PostHogProvider";
 import "./globals.css";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.medflow.com.br'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinix.com.br'
 
 export const viewport: Viewport = {
   themeColor: '#3b82f6',
@@ -12,31 +12,31 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'MedFlow — Gestão Clínica Inteligente',
-    template: '%s | MedFlow',
+    default: 'Clinix — Gestão Clínica Inteligente',
+    template: '%s | Clinix',
   },
   description: 'Sistema de gestão clínica com IA integrada. Agenda, prontuário eletrônico, faturamento TISS e auditoria automática para clínicas brasileiras. Conforme a LGPD.',
   keywords: ['gestão clínica', 'prontuário eletrônico', 'faturamento TISS', 'software médico', 'IA saúde', 'LGPD saúde', 'agenda médica'],
-  authors: [{ name: 'MedFlow' }],
-  creator: 'MedFlow',
+  authors: [{ name: 'Clinix' }],
+  creator: 'Clinix',
   metadataBase: new URL(APP_URL),
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'MedFlow',
+    title: 'Clinix',
   },
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
     url: APP_URL,
-    siteName: 'MedFlow',
-    title: 'MedFlow — Gestão Clínica Inteligente com IA',
+    siteName: 'Clinix',
+    title: 'Clinix — Gestão Clínica Inteligente com IA',
     description: 'Agenda, prontuário, faturamento TISS e auditoria com inteligência artificial. Feito para clínicas brasileiras.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MedFlow — Gestão Clínica Inteligente',
+    title: 'Clinix — Gestão Clínica Inteligente',
     description: 'Sistema de gestão clínica com IA integrada para clínicas brasileiras.',
   },
   robots: {

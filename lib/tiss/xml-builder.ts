@@ -1,5 +1,5 @@
 /**
- * MedFlow — Gerador de XML TISS v4.02
+ * Clinix — Gerador de XML TISS v4.02
  *
  * Gera XML válido no padrão TISS da ANS para guias de consulta,
  * SP/SADT, internação e lotes de guias.

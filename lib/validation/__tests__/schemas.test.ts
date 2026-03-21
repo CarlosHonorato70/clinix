@@ -4,7 +4,7 @@ import { loginSchema, pacienteCreateSchema, agendamentoCreateSchema, agenteChatS
 describe('Validation Schemas', () => {
   describe('loginSchema', () => {
     it('should accept valid login', () => {
-      const result = loginSchema.safeParse({ email: 'admin@medflow.dev', password: 'medflow123' })
+      const result = loginSchema.safeParse({ email: 'admin@clinix.dev', password: 'clinix123' })
       expect(result.success).toBe(true)
     })
 

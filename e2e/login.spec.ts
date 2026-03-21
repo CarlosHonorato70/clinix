@@ -4,8 +4,8 @@ test.describe('Login', () => {
   test('should login successfully with valid credentials', async ({ page }) => {
     await page.goto('/login')
 
-    await page.getByLabel('Email').fill('admin@medflow.dev')
-    await page.getByLabel('Senha').fill('medflow123')
+    await page.getByLabel('Email').fill('admin@clinix.dev')
+    await page.getByLabel('Senha').fill('clinix123')
     await page.getByRole('button', { name: 'Entrar' }).click()
 
     await page.waitForURL('/')
@@ -15,7 +15,7 @@ test.describe('Login', () => {
   test('should show error with invalid credentials', async ({ page }) => {
     await page.goto('/login')
 
-    await page.getByLabel('Email').fill('admin@medflow.dev')
+    await page.getByLabel('Email').fill('admin@clinix.dev')
     await page.getByLabel('Senha').fill('wrongpassword')
     await page.getByRole('button', { name: 'Entrar' }).click()
 
@@ -25,8 +25,8 @@ test.describe('Login', () => {
   test('should show loading state while submitting', async ({ page }) => {
     await page.goto('/login')
 
-    await page.getByLabel('Email').fill('admin@medflow.dev')
-    await page.getByLabel('Senha').fill('medflow123')
+    await page.getByLabel('Email').fill('admin@clinix.dev')
+    await page.getByLabel('Senha').fill('clinix123')
 
     // Intercept to delay response
     await page.route('**/api/auth/login', async (route) => {
@@ -48,7 +48,7 @@ test.describe('Login', () => {
   test('should render login page elements correctly', async ({ page }) => {
     await page.goto('/login')
 
-    await expect(page.getByText('MedFlow')).toBeVisible()
+    await expect(page.getByText('Clinix')).toBeVisible()
     await expect(page.getByText('Gestão Clínica Inteligente')).toBeVisible()
     await expect(page.getByLabel('Email')).toBeVisible()
     await expect(page.getByLabel('Senha')).toBeVisible()

@@ -5,7 +5,7 @@ export const logger = pino({
   transport: process.env.NODE_ENV === 'development'
     ? { target: 'pino-pretty', options: { colorize: true } }
     : undefined,
-  base: { service: 'medflow' },
+  base: { service: 'clinix' },
   timestamp: pino.stdTimeFunctions.isoTime,
   redact: {
     paths: [

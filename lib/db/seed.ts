@@ -15,7 +15,7 @@ import { convenioRegrasAprendidas } from './schema/convenio-regras'
 const client = postgres(process.env.DATABASE_URL!)
 const db = drizzle(client)
 
-const DEV_PASSWORD = 'medflow123'
+const DEV_PASSWORD = 'clinix123'
 
 async function seed() {
   console.log('🌱 Seeding database...')
@@ -34,16 +34,16 @@ async function seed() {
 
   // 3. Users (doctors + staff)
   const doctorsData = [
-    { nome: 'Dr. Carlos Mendes', email: 'carlos@medflow.dev', role: 'medico', crm: 'CRM-SP 48291', especialidade: 'Clínica Médica', corAgenda: '#3b82f6' },
-    { nome: 'Dra. Ana Figueiredo', email: 'ana@medflow.dev', role: 'medico', crm: 'CRM-SP 61047', especialidade: 'Cardiologia', corAgenda: '#8b5cf6' },
-    { nome: 'Dr. Ricardo Braga', email: 'ricardo@medflow.dev', role: 'medico', crm: 'CRM-SP 33814', especialidade: 'Ortopedia', corAgenda: '#10b981' },
-    { nome: 'Dra. Larissa Porto', email: 'larissa@medflow.dev', role: 'medico', crm: 'CRM-SP 55932', especialidade: 'Pediatria', corAgenda: '#f59e0b' },
+    { nome: 'Dr. Carlos Mendes', email: 'carlos@clinix.dev', role: 'medico', crm: 'CRM-SP 48291', especialidade: 'Clínica Médica', corAgenda: '#3b82f6' },
+    { nome: 'Dra. Ana Figueiredo', email: 'ana@clinix.dev', role: 'medico', crm: 'CRM-SP 61047', especialidade: 'Cardiologia', corAgenda: '#8b5cf6' },
+    { nome: 'Dr. Ricardo Braga', email: 'ricardo@clinix.dev', role: 'medico', crm: 'CRM-SP 33814', especialidade: 'Ortopedia', corAgenda: '#10b981' },
+    { nome: 'Dra. Larissa Porto', email: 'larissa@clinix.dev', role: 'medico', crm: 'CRM-SP 55932', especialidade: 'Pediatria', corAgenda: '#f59e0b' },
   ]
 
   const staffData = [
-    { nome: 'Admin MedFlow', email: 'admin@medflow.dev', role: 'admin' },
-    { nome: 'Juliana Faturamento', email: 'juliana@medflow.dev', role: 'faturista' },
-    { nome: 'Priscila Recepção', email: 'priscila@medflow.dev', role: 'recepcionista' },
+    { nome: 'Admin Clinix', email: 'admin@clinix.dev', role: 'admin' },
+    { nome: 'Juliana Faturamento', email: 'juliana@clinix.dev', role: 'faturista' },
+    { nome: 'Priscila Recepção', email: 'priscila@clinix.dev', role: 'recepcionista' },
   ]
 
   const allUsers = [...doctorsData, ...staffData].map((u) => ({
@@ -315,14 +315,14 @@ async function seed() {
   console.log('  ✓ 3 learned rules created')
 
   console.log('\n✅ Seed complete!')
-  console.log('\nLogin credentials (all passwords: medflow123):')
-  console.log('  admin@medflow.dev (admin)')
-  console.log('  carlos@medflow.dev (medico)')
-  console.log('  ana@medflow.dev (medico)')
-  console.log('  ricardo@medflow.dev (medico)')
-  console.log('  larissa@medflow.dev (medico)')
-  console.log('  juliana@medflow.dev (faturista)')
-  console.log('  priscila@medflow.dev (recepcionista)')
+  console.log('\nLogin credentials (all passwords: clinix123):')
+  console.log('  admin@clinix.dev (admin)')
+  console.log('  carlos@clinix.dev (medico)')
+  console.log('  ana@clinix.dev (medico)')
+  console.log('  ricardo@clinix.dev (medico)')
+  console.log('  larissa@clinix.dev (medico)')
+  console.log('  juliana@clinix.dev (faturista)')
+  console.log('  priscila@clinix.dev (recepcionista)')
 
   await client.end()
 }

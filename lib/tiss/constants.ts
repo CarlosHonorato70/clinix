@@ -1,5 +1,5 @@
 /**
- * MedFlow — Constantes do Padrão TISS v4.02 (ANS)
+ * Clinix — Constantes do Padrão TISS v4.02 (ANS)
  * Ref: https://www.gov.br/ans/pt-br/assuntos/prestadores/padrao-para-troca-de-informacao-de-saude-suplementar-2013-tiss
  */
 

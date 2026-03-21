@@ -1,11 +1,11 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: medflow-db
+    container_name: clinix-db
     environment:
-      POSTGRES_DB: medflow
-      POSTGRES_USER: medflow
-      POSTGRES_PASSWORD: medflow123
+      POSTGRES_DB: clinix
+      POSTGRES_USER: clinix
+      POSTGRES_PASSWORD: clinix123
     ports:
       - '5432:5432'
     volumes:

@@ -1,5 +1,5 @@
 /**
- * MedFlow — Motor de Pré-Auditoria IA
+ * Clinix — Motor de Pré-Auditoria IA
  *
  * Analisa guias contra regras aprendidas do convênio, tabela TUSS,
  * e histórico de glosas antes do envio à operadora.

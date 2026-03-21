@@ -1,12 +1,12 @@
-# MedFlow — Guia de Comercialização
+# Clinix — Guia de Comercialização
 
 ## Posicionamento
 
-> **MedFlow — Gestão clínica inteligente com IA integrada.**
+> **Clinix — Gestão clínica inteligente com IA integrada.**
 > Faturamento TISS automatizado, zero retrabalho com convênios, conformidade LGPD.
 
 ### Proposta de valor em 1 frase:
-*"O MedFlow fatura seus convênios automaticamente com IA, eliminando glosas e retrabalho."*
+*"O Clinix fatura seus convênios automaticamente com IA, eliminando glosas e retrabalho."*
 
 ---
 
@@ -28,7 +28,7 @@
 
 ## Diferenciais Competitivos
 
-| Feature | MedFlow | iClinic | Feegow | Amplimed |
+| Feature | Clinix | iClinic | Feegow | Amplimed |
 |---------|---------|---------|--------|----------|
 | Extração TUSS com IA (GPT-4o) | ✅ | ❌ | ❌ | ❌ |
 | Pré-auditoria IA antes do envio | ✅ | ❌ | ❌ | ❌ |
@@ -111,7 +111,7 @@
 > Vi que a [Clínica X] atende por convênios como Unimed e Amil.
 > Quantas horas por semana vocês perdem com retrabalho de glosas?
 >
-> Criei o MedFlow — um sistema que usa IA para auditar guias TISS
+> Criei o Clinix — um sistema que usa IA para auditar guias TISS
 > antes do envio, reduzindo glosas em até 80%.
 >
 > Posso mostrar em 15 minutos como funciona?
@@ -131,7 +131,7 @@
 ### Passo a passo:
 
 1. Acesse [registro.br](https://registro.br)
-2. Pesquise: `medflow.com.br`
+2. Pesquise: `clinix.com.br`
 3. Se disponível: registre (~R$ 40/ano)
-4. Se indisponível: tente `medflowia.com.br`, `usemedflow.com.br`, ou `medflow.app`
+4. Se indisponível: tente `clinixia.com.br`, `useclinix.com.br`, ou `clinix.app`
 5. Configure DNS conforme DEPLOY-GUIDE.md

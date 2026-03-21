@@ -7,15 +7,12 @@ export default function VerifyPage() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 
-  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying')
-  const [error, setError] = useState('')
+  const initialStatus = token ? 'verifying' : 'error'
+  const [status, setStatus] = useState<'verifying' | 'success' | 'error'>(initialStatus)
+  const [error, setError] = useState(token ? '' : 'Token não encontrado')
 
   useEffect(() => {
-    if (!token) {
-      setStatus('error')
-      setError('Token não encontrado')
-      return
-    }
+    if (!token) return
 
     fetch('/api/auth/verify-email', {
       method: 'POST',
@@ -57,7 +54,7 @@ export default function VerifyPage() {
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 44, height: 44, background: '#6366f1', borderRadius: 10,
           color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 16,
-        }}>M</div>
+        }}>C</div>
 
         {status === 'verifying' && (
           <>

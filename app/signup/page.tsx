@@ -93,7 +93,7 @@ export default function SignupPage() {
             fontSize: 18,
             fontWeight: 700,
             marginBottom: 12,
-          }}>M</div>
+          }}>C</div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#e4e4e7', margin: 0 }}>Criar conta</h1>
           <p style={{ fontSize: 13, color: '#71717a', marginTop: 4 }}>14 dias grátis, sem cartão de crédito</p>
         </div>

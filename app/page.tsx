@@ -144,7 +144,7 @@ export default function LandingPage() {
             background: 'var(--purple)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
             fontWeight: 700, fontSize: 16, color: '#fff',
-          }}>M</div>
+          }}>C</div>
           <span style={{ fontWeight: 600, fontSize: 18 }}>Clinix</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -367,7 +367,7 @@ export default function LandingPage() {
             background: 'var(--purple)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
             fontWeight: 700, fontSize: 12, color: '#fff',
-          }}>M</div>
+          }}>C</div>
           <span style={{ fontSize: 13, color: 'var(--text3)' }}>
             Clinix &copy; {new Date().getFullYear()}
           </span>

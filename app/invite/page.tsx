@@ -97,7 +97,7 @@ export default function InvitePage() {
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: 44, height: 44, background: '#6366f1', borderRadius: 10,
             color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 12,
-          }}>M</div>
+          }}>C</div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#e4e4e7', margin: 0 }}>Aceitar convite</h1>
           {info && (
             <p style={{ fontSize: 13, color: '#71717a', marginTop: 8 }}>

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { ToastProvider } from '@/components/ui/Toast'
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context'
+import SessionTimeoutProvider from '@/components/providers/SessionTimeoutProvider'
 import { useApi } from '@/lib/api/client'
 
 // ─── Route metadata ───────────────────────────────────────────────────────────
@@ -600,13 +601,11 @@ export default function DashboardLayout({
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => {
-    setSidebarOpen(false)
-  }, [pathname])
+  // Sidebar closes when user clicks a nav link (via onClose in Sidebar)
 
   return (
     <AuthProvider>
+    <SessionTimeoutProvider timeoutMinutes={15}>
     <ToastProvider>
       {/* Mobile responsive styles */}
       <style>{`
@@ -655,6 +654,7 @@ export default function DashboardLayout({
         </div>
       </div>
     </ToastProvider>
+    </SessionTimeoutProvider>
     </AuthProvider>
   )
 }

@@ -1,5 +1,5 @@
-// MedFlow Service Worker — Cache-first for static, network-first for API
-const CACHE_NAME = 'medflow-v1'
+// Clinix Service Worker — Cache-first for static, network-first for API
+const CACHE_NAME = 'clinix-v1'
 
 const PRECACHE_URLS = [
   '/',
@@ -82,7 +82,7 @@ self.addEventListener('fetch', (event) => {
               `<!DOCTYPE html>
               <html lang="pt-BR">
               <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-              <title>MedFlow — Offline</title>
+              <title>Clinix — Offline</title>
               <style>
                 body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
                 background:#0f1117;color:#e4e4e7;font-family:system-ui,sans-serif;text-align:center}

@@ -7,7 +7,7 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/clinix}"
-DOMAIN="${DOMAIN:-app.clinix.com.br}"
+DOMAIN="${DOMAIN:-app.clinixproia.com.br}"
 
 cd "$APP_DIR"
 

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import PostHogProvider from "@/components/providers/PostHogProvider";
 import "./globals.css";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinix.com.br'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'
 
 export const viewport: Viewport = {
   themeColor: '#3b82f6',

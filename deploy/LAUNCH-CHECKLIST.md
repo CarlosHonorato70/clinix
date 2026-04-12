@@ -4,11 +4,11 @@
 
 - [ ] Droplet DigitalOcean provisionado (4GB RAM minimo)
 - [ ] Rodar `deploy/setup-droplet.sh` no servidor
-- [ ] Dominio registrado (clinix.com.br ou alternativo)
+- [ ] Dominio registrado (clinixproia.com.br ou alternativo)
 - [ ] DNS A record apontando para IP do Droplet
-- [ ] DNS propagado (verificar com `dig clinix.com.br`)
+- [ ] DNS propagado (verificar com `dig clinixproia.com.br`)
 - [ ] SSL certificado emitido via Certbot
-- [ ] HTTPS funcionando (verificar com `curl -I https://clinix.com.br`)
+- [ ] HTTPS funcionando (verificar com `curl -I https://clinixproia.com.br`)
 
 ## Secrets e Configuracao
 
@@ -19,7 +19,7 @@
 - [ ] `POSTGRES_PASSWORD` definido (senha forte)
 - [ ] `OPENAI_API_KEY` configurado com creditos ativos
 - [ ] `RESEND_API_KEY` configurado
-- [ ] `RESEND_FROM_EMAIL` configurado (ex: noreply@clinix.com.br)
+- [ ] `RESEND_FROM_EMAIL` configurado (ex: noreply@clinixproia.com.br)
 - [ ] `ASAAS_API_KEY` configurado (sandbox primeiro, depois producao)
 - [ ] `ASAAS_WEBHOOK_TOKEN` definido
 - [ ] `POSTHOG_KEY` configurado
@@ -43,7 +43,7 @@
 ## Billing
 
 - [ ] Conta Asaas criada e ativada
-- [ ] Webhook configurado: `https://clinix.com.br/api/billing/webhook`
+- [ ] Webhook configurado: `https://clinixproia.com.br/api/billing/webhook`
 - [ ] Planos Basic (R$197) e Pro (R$497) criados no Asaas
 - [ ] Testar fluxo: signup > trial > upgrade > pagamento
 
@@ -63,7 +63,7 @@
 
 ## Validacao Final
 
-- [ ] Landing page carrega em https://clinix.com.br
+- [ ] Landing page carrega em https://clinixproia.com.br
 - [ ] Signup cria conta com sucesso
 - [ ] Email de verificacao chega na caixa de entrada
 - [ ] Login funciona apos verificacao

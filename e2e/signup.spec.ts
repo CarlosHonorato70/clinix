@@ -30,7 +30,7 @@ test.describe('Signup', () => {
   test('should show subdomain suffix', async ({ page }) => {
     await page.goto('/signup')
 
-    await expect(page.getByText('.clinix.com.br')).toBeVisible()
+    await expect(page.getByText('.clinixproia.com.br')).toBeVisible()
   })
 
   test('should have submit button', async ({ page }) => {

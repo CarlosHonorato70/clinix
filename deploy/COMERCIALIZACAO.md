@@ -131,7 +131,7 @@
 ### Passo a passo:
 
 1. Acesse [registro.br](https://registro.br)
-2. Pesquise: `clinix.com.br`
+2. Pesquise: `clinixproia.com.br`
 3. Se disponível: registre (~R$ 40/ano)
-4. Se indisponível: tente `clinixia.com.br`, `useclinix.com.br`, ou `clinix.app`
+4. Se indisponível: tente `clinixia.com.br`, `useclinixproia.com.br`, ou `clinix.app`
 5. Configure DNS conforme DEPLOY-GUIDE.md

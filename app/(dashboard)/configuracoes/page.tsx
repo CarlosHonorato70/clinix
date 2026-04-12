@@ -81,7 +81,7 @@ export default function ConfiguracoesPage() {
               </div>
               <div>
                 <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subdomínio</div>
-                <div style={{ fontSize: 14, color: 'var(--text)', fontFamily: 'var(--mono)' }}>{tenant?.subdominio ?? '—'}.clinix.com.br</div>
+                <div style={{ fontSize: 14, color: 'var(--text)', fontFamily: 'var(--mono)' }}>{tenant?.subdominio ?? '—'}.clinixproia.com.br</div>
               </div>
               <div>
                 <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Administrador</div>

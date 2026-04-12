@@ -15,12 +15,12 @@
 
 ### Opção A: Registro.br (recomendado para .com.br)
 1. Acesse [registro.br](https://registro.br)
-2. Pesquise `clinix.com.br`
+2. Pesquise `clinixproia.com.br`
 3. Registre (~R$ 40/ano)
 4. Em DNS, adicione:
    - **A** `@` → `IP_DO_DROPLET`
    - **A** `app` → `IP_DO_DROPLET`
-   - **CNAME** `www` → `clinix.com.br`
+   - **CNAME** `www` → `clinixproia.com.br`
 
 ### Opção B: Cloudflare (DNS gratuito + CDN)
 1. Registre em qualquer registrador
@@ -70,7 +70,7 @@ DATABASE_URL=postgresql://clinix:<senha-forte-aqui>@postgres:5432/clinix
 OPENAI_API_KEY=sk-...
 
 # URL da aplicação
-NEXT_PUBLIC_APP_URL=https://app.clinix.com.br
+NEXT_PUBLIC_APP_URL=https://app.clinixproia.com.br
 ```
 
 ## 5. Deploy
@@ -80,11 +80,11 @@ cd /opt/clinix
 ./deploy/deploy.sh
 ```
 
-Após ~2 minutos, acesse: `https://app.clinix.com.br`
+Após ~2 minutos, acesse: `https://app.clinixproia.com.br`
 
 ## 6. Primeiro Acesso
 
-1. Acesse `https://app.clinix.com.br/signup`
+1. Acesse `https://app.clinixproia.com.br/signup`
 2. Crie sua clínica
 3. Pronto — você é o primeiro usuário admin
 
@@ -98,7 +98,7 @@ docker compose -f docker-compose.prod.yml logs -f app
 docker compose -f docker-compose.prod.yml ps
 
 # Health check
-curl https://app.clinix.com.br/api/health
+curl https://app.clinixproia.com.br/api/health
 ```
 
 ## 8. Backup

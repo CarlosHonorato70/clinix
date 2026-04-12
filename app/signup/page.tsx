@@ -132,7 +132,7 @@ export default function SignupPage() {
                 color: '#71717a',
                 fontSize: 13,
                 whiteSpace: 'nowrap',
-              }}>.clinix.com.br</span>
+              }}>.clinixproia.com.br</span>
             </div>
           </div>
 

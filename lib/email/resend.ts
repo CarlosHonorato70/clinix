@@ -6,7 +6,7 @@ function getResend() {
   return _resend
 }
 
-const FROM = process.env.EMAIL_FROM || 'Clinix <noreply@clinix.com.br>'
+const FROM = process.env.EMAIL_FROM || 'Clinix <noreply@clinixproia.com.br>'
 
 export async function sendWelcomeEmail(to: string, clinicaNome: string, userName: string) {
   await getResend().emails.send({
@@ -31,7 +31,7 @@ export async function sendWelcomeEmail(to: string, clinicaNome: string, userName
           <p style="color: #555; line-height: 1.6;">
             Acesse o sistema e comece a configurar sua clínica:
           </p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinix.com.br'}/login"
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/login"
              style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px;
                     border-radius: 6px; text-decoration: none; font-weight: 600;">
             Acessar Clinix
@@ -46,7 +46,7 @@ export async function sendWelcomeEmail(to: string, clinicaNome: string, userName
 }
 
 export async function sendPasswordResetEmail(to: string, resetToken: string) {
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinix.com.br'}/reset-password?token=${resetToken}`
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/reset-password?token=${resetToken}`
 
   await getResend().emails.send({
     from: FROM,
@@ -80,7 +80,7 @@ export async function sendPasswordResetEmail(to: string, resetToken: string) {
 }
 
 export async function sendInviteEmail(to: string, inviterName: string, clinicaNome: string, inviteToken: string) {
-  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinix.com.br'}/invite?token=${inviteToken}`
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/invite?token=${inviteToken}`
 
   await getResend().emails.send({
     from: FROM,
@@ -116,7 +116,7 @@ export async function sendInviteEmail(to: string, inviterName: string, clinicaNo
 }
 
 export async function sendVerificationEmail(to: string, userName: string, verifyToken: string) {
-  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinix.com.br'}/verify?token=${verifyToken}`
+  const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/verify?token=${verifyToken}`
 
   await getResend().emails.send({
     from: FROM,
@@ -166,7 +166,7 @@ export async function sendTrialExpiringEmail(to: string, clinicaNome: string, da
           <p style="color: #555; line-height: 1.6;">
             Para continuar usando o Clinix sem interrupção, escolha um plano:
           </p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinix.com.br'}/configuracoes"
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/configuracoes"
              style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px;
                     border-radius: 6px; text-decoration: none; font-weight: 600;">
             Escolher plano

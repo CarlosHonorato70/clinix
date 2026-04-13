@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - run: npm ci
+      - run: npm install
       - run: npm run lint
 
   test:
@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - run: npm ci
+      - run: npm install
       - run: npm test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/clinix_test
@@ -63,7 +63,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      - run: npm ci
+      - run: npm install
       - run: npm run build
         env:
           DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/clinix

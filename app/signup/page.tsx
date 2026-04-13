@@ -70,19 +70,19 @@ export default function SignupPage() {
       minHeight: '100vh',
       background: '#0f1117',
       fontFamily: 'system-ui, sans-serif',
-      padding: '40px 16px',
+      padding: '20px 16px',
       display: 'flex',
       justifyContent: 'center',
     }}>
       <form onSubmit={handleSubmit} style={{
         width: 440,
         maxWidth: '100%',
-        padding: 40,
+        padding: '24px 32px 32px',
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: 16,
         height: 'fit-content',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { ToastProvider } from '@/components/ui/Toast'
 import { AuthProvider, useAuth } from '@/lib/auth/auth-context'
 import SessionTimeoutProvider from '@/components/providers/SessionTimeoutProvider'
@@ -599,9 +599,19 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Sidebar closes when user clicks a nav link (via onClose in Sidebar)
+  // Auto-redirect new clinics to onboarding
+  const { data: convData } = useApi<{ convenios: unknown[] }>('/convenios')
+  const { data: pacData } = useApi<{ pacientes: unknown[] }>('/pacientes')
+
+  useEffect(() => {
+    if (pathname === '/onboarding') return
+    if (!convData || !pacData) return // still loading
+    const isNewClinic = convData.convenios.length === 0 && pacData.pacientes.length === 0
+    if (isNewClinic) router.push('/onboarding')
+  }, [convData, pacData, pathname, router])
 
   return (
     <AuthProvider>

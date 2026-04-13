@@ -16,3 +16,23 @@ export const GET = withAuth(async (_req, ctx) => {
 
   return Response.json({ convenios: list })
 })
+
+export const POST = withAuth(async (req, ctx) => {
+  const body = await req.json()
+  const { nome, codigoAns } = body
+
+  if (!nome) {
+    return Response.json({ error: 'Nome é obrigatório' }, { status: 400 })
+  }
+
+  const [created] = await db
+    .insert(convenios)
+    .values({
+      tenantId: ctx.tenantId,
+      nome,
+      codigoAns: codigoAns || null,
+    })
+    .returning()
+
+  return Response.json({ convenio: created }, { status: 201 })
+}, ['admin', 'faturista'])

@@ -17,7 +17,7 @@ const PUBLIC_PREFIX = [
   '/favicon',
 ]
 
-const PUBLIC_EXACT = ['/', '/termos', '/privacidade']
+const PUBLIC_EXACT = ['/termos', '/privacidade']
 
 function isPublic(pathname: string) {
   return PUBLIC_EXACT.includes(pathname) || PUBLIC_PREFIX.some((p) => pathname.startsWith(p))

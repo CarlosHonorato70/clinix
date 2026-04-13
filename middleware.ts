@@ -26,11 +26,22 @@ function isPublic(pathname: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  const token = request.cookies.get('clinix-access-token')?.value
+
+  // If logged in and visiting login/signup, redirect to dashboard
+  if (token && (pathname === '/login' || pathname === '/signup')) {
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET!)
+      await jwtVerify(token, secret)
+      return NextResponse.redirect(new URL('/agenda', request.url))
+    } catch {
+      // Token invalid, let them proceed to login
+    }
+  }
+
   if (isPublic(pathname)) {
     return NextResponse.next()
   }
-
-  const token = request.cookies.get('clinix-access-token')?.value
 
   if (!token) {
     // API routes → 401 JSON
@@ -59,6 +70,11 @@ export async function middleware(request: NextRequest) {
       if (!pathname.startsWith('/configuracoes')) {
         return NextResponse.redirect(new URL('/configuracoes', request.url))
       }
+    }
+
+    // Authenticated user on landing page → redirect to dashboard
+    if (pathname === '/') {
+      return NextResponse.redirect(new URL('/agenda', request.url))
     }
 
     // Inject user context as headers for downstream API routes

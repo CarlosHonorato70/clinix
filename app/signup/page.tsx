@@ -56,12 +56,12 @@ export default function SignupPage() {
 
   const inputStyle = {
     width: '100%',
-    padding: '10px 14px',
+    padding: '8px 12px',
     background: 'rgba(255,255,255,0.06)',
     border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: 8,
     color: '#e4e4e7',
-    fontSize: 14,
+    fontSize: 13,
     outline: 'none',
   }
 
@@ -70,37 +70,37 @@ export default function SignupPage() {
       minHeight: '100vh',
       background: '#0f1117',
       fontFamily: 'system-ui, sans-serif',
-      padding: '20px 16px',
+      padding: '16px',
       display: 'flex',
       justifyContent: 'center',
     }}>
       <form onSubmit={handleSubmit} style={{
         width: 440,
         maxWidth: '100%',
-        padding: '24px 32px 32px',
+        padding: '20px 28px 28px',
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: 16,
         height: 'fit-content',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: 44,
-            height: 44,
+            width: 36,
+            height: 36,
             background: '#6366f1',
-            borderRadius: 10,
+            borderRadius: 8,
             color: '#fff',
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: 700,
-            marginBottom: 12,
+            marginBottom: 8,
           }}>C</div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#e4e4e7', margin: 0 }}>Criar conta</h1>
-          <p style={{ fontSize: 13, color: '#71717a', marginTop: 4 }}>14 dias grátis, sem cartão de crédito</p>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#e4e4e7', margin: 0 }}>Criar conta</h1>
+          <p style={{ fontSize: 12, color: '#71717a', marginTop: 2 }}>14 dias grátis, sem cartão de crédito</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
             <label style={{ fontSize: 12, color: '#a1a1aa', marginBottom: 4, display: 'block' }}>Nome da clínica</label>
             <input
@@ -195,8 +195,8 @@ export default function SignupPage() {
           disabled={loading}
           style={{
             width: '100%',
-            marginTop: 20,
-            padding: '12px 0',
+            marginTop: 12,
+            padding: '10px 0',
             background: loading ? '#4f46e5aa' : '#6366f1',
             color: '#fff',
             border: 'none',
@@ -209,7 +209,7 @@ export default function SignupPage() {
           {loading ? 'Criando conta...' : 'Começar teste grátis'}
         </button>
 
-        <p style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: '#71717a' }}>
+        <p style={{ textAlign: 'center', marginTop: 12, fontSize: 12, color: '#71717a' }}>
           Já tem conta? <a href="/login" style={{ color: '#818cf8', textDecoration: 'none' }}>Entrar</a>
         </p>
       </form>

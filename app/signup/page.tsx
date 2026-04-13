@@ -34,7 +34,7 @@ export default function SignupPage() {
         return
       }
 
-      router.push('/')
+      router.push('/agenda')
     } catch {
       setError('Erro de conexão')
     } finally {

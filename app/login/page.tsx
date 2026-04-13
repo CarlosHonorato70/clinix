@@ -33,7 +33,9 @@ export default function LoginPage() {
       localStorage.setItem('refreshToken', data.refreshToken)
       localStorage.setItem('user', JSON.stringify(data.user))
 
-      router.push('/')
+      // Redirect to the page they were trying to access, or dashboard
+      const params = new URLSearchParams(window.location.search)
+      router.push(params.get('redirect') || '/agenda')
     } catch {
       setError('Erro de conexão')
     } finally {

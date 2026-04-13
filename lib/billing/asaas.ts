@@ -12,6 +12,10 @@ const BASE_URL = process.env.ASAAS_BASE_URL || 'https://sandbox.asaas.com/api/v3
 const API_KEY = () => process.env.ASAAS_API_KEY || ''
 
 async function asaasRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (!API_KEY()) {
+    throw new Error('Billing não configurado — ASAAS_API_KEY ausente')
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {

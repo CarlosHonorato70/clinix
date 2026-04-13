@@ -1,15 +1,29 @@
 import { Resend } from 'resend'
 
 let _resend: Resend | null = null
-function getResend() {
-  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!)
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[Clinix] RESEND_API_KEY not configured — emails disabled')
+    return null
+  }
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
   return _resend
 }
 
 const FROM = process.env.EMAIL_FROM || 'Clinix <noreply@clinixproia.com.br>'
 
+async function safeSend(params: { from: string; to: string; subject: string; html: string }) {
+  const resend = getResend()
+  if (!resend) return // silently skip if not configured
+  try {
+    await resend.emails.send(params)
+  } catch (err) {
+    console.error('[Clinix] Email send failed:', err instanceof Error ? err.message : err)
+  }
+}
+
 export async function sendWelcomeEmail(to: string, clinicaNome: string, userName: string) {
-  await getResend().emails.send({
+  await safeSend({
     from: FROM,
     to,
     subject: `Bem-vindo ao Clinix, ${userName}!`,
@@ -48,7 +62,7 @@ export async function sendWelcomeEmail(to: string, clinicaNome: string, userName
 export async function sendPasswordResetEmail(to: string, resetToken: string) {
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/reset-password?token=${resetToken}`
 
-  await getResend().emails.send({
+  await safeSend({
     from: FROM,
     to,
     subject: 'Redefinir sua senha — Clinix',
@@ -82,7 +96,7 @@ export async function sendPasswordResetEmail(to: string, resetToken: string) {
 export async function sendInviteEmail(to: string, inviterName: string, clinicaNome: string, inviteToken: string) {
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/invite?token=${inviteToken}`
 
-  await getResend().emails.send({
+  await safeSend({
     from: FROM,
     to,
     subject: `${inviterName} convidou você para o Clinix`,
@@ -118,7 +132,7 @@ export async function sendInviteEmail(to: string, inviterName: string, clinicaNo
 export async function sendVerificationEmail(to: string, userName: string, verifyToken: string) {
   const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://app.clinixproia.com.br'}/verify?token=${verifyToken}`
 
-  await getResend().emails.send({
+  await safeSend({
     from: FROM,
     to,
     subject: 'Confirme seu email — Clinix',
@@ -148,7 +162,7 @@ export async function sendVerificationEmail(to: string, userName: string, verify
 }
 
 export async function sendTrialExpiringEmail(to: string, clinicaNome: string, daysLeft: number) {
-  await getResend().emails.send({
+  await safeSend({
     from: FROM,
     to,
     subject: `Seu trial Clinix expira em ${daysLeft} dia${daysLeft > 1 ? 's' : ''}`,

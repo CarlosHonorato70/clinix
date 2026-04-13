@@ -1,9 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function InvitePage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f1117', color: '#71717a' }}>Carregando...</div>}>
+      <InviteForm />
+    </Suspense>
+  )
+}
+
+function InviteForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')

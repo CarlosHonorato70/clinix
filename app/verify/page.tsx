@@ -1,9 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f1117', color: '#71717a' }}>Verificando...</div>}>
+      <VerifyForm />
+    </Suspense>
+  )
+}
+
+function VerifyForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
 

@@ -69,7 +69,7 @@ export default function SignupPage() {
     <div style={{
       minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       justifyContent: 'center',
       background: '#0f1117',
       fontFamily: 'system-ui, sans-serif',
@@ -82,6 +82,8 @@ export default function SignupPage() {
         padding: 40,
         border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: 16,
+        marginTop: 'auto',
+        marginBottom: 'auto',
       }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{

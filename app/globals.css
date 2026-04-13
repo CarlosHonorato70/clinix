@@ -39,7 +39,6 @@ body {
   color: var(--text);
   font-size: 14px;
   line-height: 1.6;
-  overflow: hidden;
 }
 
 button { font-family: var(--font); cursor: pointer; border: none; outline: none; }

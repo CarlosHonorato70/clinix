@@ -14,11 +14,14 @@ services:
     networks:
       - clinix
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      # A4: usar 127.0.0.1 (IPv4) em vez de localhost para evitar
+      # falha quando o alpine resolve "localhost" para IPv6 (::1) e
+      # o Next standalone só escuta em 0.0.0.0 (IPv4).
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
 
   postgres:
     image: pgvector/pgvector:pg16

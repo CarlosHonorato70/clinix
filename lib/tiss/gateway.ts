@@ -235,8 +235,9 @@ function buildSOAPEnvelope(req: GatewayRequest): string {
       </ans:epilogo>
     </ans:mensagemTISS>`
 
-  // XML-escape credentials to prevent XML injection
-  const escXml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+  // XML-escape credentials to prevent XML injection (also strip invalid XML 1.0 control chars)
+   
+  const escXml = (s: string) => s.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
   // WS-Security header only for ws_security auth method (or default when login is provided)
   const authMethod = req.convenio.authMethod ?? (req.convenio.wsLogin ? 'ws_security' : 'none')

@@ -20,6 +20,17 @@ type AuthenticatedHandler = (
 // Cache tenant status for 60s to avoid DB hit on every request
 const tenantStatusCache = new Map<string, { status: string; expiresAt: number }>()
 
+/**
+ * Invalida o cache de status do tenant. Usado pelo webhook Asaas
+ * quando o status muda (active → suspended/cancelled) para que o
+ * withAuth não continue autorizando requests por até 60s com base
+ * em status stale.
+ */
+export function invalidateTenantStatusCache(tenantId?: string) {
+  if (tenantId) tenantStatusCache.delete(tenantId)
+  else tenantStatusCache.clear()
+}
+
 async function getTenantStatus(tenantId: string): Promise<string> {
   const cached = tenantStatusCache.get(tenantId)
   if (cached && cached.expiresAt > Date.now()) {

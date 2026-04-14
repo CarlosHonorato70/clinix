@@ -24,8 +24,66 @@ function isPublic(pathname: string) {
   return PUBLIC_EXACT.includes(pathname) || PUBLIC_PREFIX.some((p) => pathname.startsWith(p))
 }
 
+// M7: Limite de body para mutações API (POST/PUT/PATCH).
+// 2 MB é suficiente para qualquer payload JSON legítimo da app
+// (prontuários com PDF já sobem via rota separada, não JSON).
+// Bloquear cedo evita consumo de memória/banda em ataques de DoS.
+const MAX_BODY_BYTES = 2 * 1024 * 1024
+
+// B2: Origens permitidas para CORS explícito. A API é same-origin
+// only — listamos apenas nossos domínios e qualquer outra origem
+// recebe 403 em preflight. SameSite=Lax já bloqueia a maior parte
+// dos ataques CSRF de navegador, mas CORS explícito bloqueia
+// requisições fetch() de outras origens em clientes modernos.
+const ALLOWED_ORIGINS = new Set(
+  [
+    process.env.NEXT_PUBLIC_APP_URL,
+    'https://clinixproia.com.br',
+    'https://app.clinixproia.com.br',
+    'https://www.clinixproia.com.br',
+  ].filter(Boolean) as string[]
+)
+
+function corsHeaders(origin: string | null): HeadersInit {
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    return {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Vary': 'Origin',
+    }
+  }
+  return {}
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // B2: CORS preflight — só responde OK para origens explicitamente
+  // permitidas. Qualquer outra origem cai num 403 natural pelo browser.
+  if (request.method === 'OPTIONS' && pathname.startsWith('/api/')) {
+    const origin = request.headers.get('origin')
+    const headers = corsHeaders(origin)
+    return new Response(null, {
+      status: Object.keys(headers).length > 0 ? 204 : 403,
+      headers,
+    })
+  }
+
+  // M7: reject API mutations exceeding body limit before touching auth/DB
+  if (
+    pathname.startsWith('/api/') &&
+    (request.method === 'POST' || request.method === 'PUT' || request.method === 'PATCH')
+  ) {
+    const len = request.headers.get('content-length')
+    if (len && parseInt(len, 10) > MAX_BODY_BYTES) {
+      return Response.json(
+        { error: `Payload muito grande (máx ${MAX_BODY_BYTES} bytes)` },
+        { status: 413 }
+      )
+    }
+  }
 
   const token = request.cookies.get('clinix-access-token')?.value
 

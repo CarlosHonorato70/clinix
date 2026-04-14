@@ -63,6 +63,26 @@ export const POST = withAuth(async (req, ctx) => {
   const { medicoId, pacienteId, dataHora, tipo, observacoes } = result
   const convenioId = undefined // resolved from patient if needed
 
+  // M5: valida que o médico pertence ao tenant E ainda está ativo.
+  // Sem esse check, um recepcionista poderia marcar consulta com
+  // médico desligado — a agenda continuaria populando com um
+  // profissional que não atende mais.
+  const [medico] = await db
+    .select({ id: usuarios.id, ativo: usuarios.ativo, role: usuarios.role })
+    .from(usuarios)
+    .where(and(eq(usuarios.id, medicoId), eq(usuarios.tenantId, ctx.tenantId)))
+    .limit(1)
+
+  if (!medico) {
+    return Response.json({ error: 'Médico não encontrado' }, { status: 404 })
+  }
+  if (!medico.ativo) {
+    return Response.json({ error: 'Médico desativado — não aceita novos agendamentos' }, { status: 400 })
+  }
+  if (medico.role !== 'medico' && medico.role !== 'admin') {
+    return Response.json({ error: 'Usuário informado não é um médico' }, { status: 400 })
+  }
+
   const [created] = await db.insert(agendamentos).values({
     tenantId: ctx.tenantId,
     medicoId,

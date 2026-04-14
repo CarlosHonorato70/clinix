@@ -72,7 +72,14 @@ export interface CabecalhoLote {
 function esc(value: string | number | undefined): string {
   if (value === undefined || value === null) return ''
   const str = String(value)
-  return str
+  // M1: remove caracteres de controle inválidos em XML 1.0 antes
+  // de escapar. O conjunto válido é #x9, #xA, #xD, #x20-#xD7FF,
+  // #xE000-#xFFFD. Caracteres como NUL ou form-feed quebram
+  // parsers das operadoras e podem causar glosa de lote inteiro.
+  // Também remove surrogates órfãos.
+   
+  const stripped = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+  return stripped
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

@@ -4,12 +4,24 @@ const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 12
 const AUTH_TAG_LENGTH = 16
 
+let _cachedKey: Buffer | null = null
 function getKey(): Buffer {
+  if (_cachedKey) return _cachedKey
   const key = process.env.ENCRYPTION_KEY
   if (!key) {
     throw new Error('ENCRYPTION_KEY não configurada. Gere com: openssl rand -hex 32')
   }
-  return Buffer.from(key, 'hex')
+  // M4: valida estritamente o formato. AES-256 exige 32 bytes = 64
+  // hex chars. Um key malformado (comprimento errado ou chars não
+  // hex) poderia cair em algum fallback silencioso e criptografar
+  // com entropia reduzida; aqui falhamos cedo e alto.
+  if (!/^[0-9a-fA-F]{64}$/.test(key)) {
+    throw new Error(
+      'ENCRYPTION_KEY inválida — precisa ser exatamente 64 caracteres hex (32 bytes). Gere com: openssl rand -hex 32'
+    )
+  }
+  _cachedKey = Buffer.from(key, 'hex')
+  return _cachedKey
 }
 
 /**
@@ -51,19 +63,25 @@ export function decrypt(encrypted: string): string {
   return decrypted
 }
 
+// M4: Formato de dados criptografados: "base64:base64:base64" (iv:tag:cipher).
+// Usamos este regex para distinguir "não está criptografado" (legacy) de
+// "está criptografado mas corrompido" (erro real que precisa estourar).
+const ENCRYPTED_SHAPE = /^[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/
+
 /**
  * Encrypts a value if it's not already encrypted (idempotent).
  * Returns null for null/undefined/empty inputs.
  */
 export function encryptField(value: string | null | undefined): string | null {
   if (!value) return null
-  // Already encrypted (has iv:tag:cipher format)
-  if (value.includes(':') && value.split(':').length === 3) {
+  // Already encrypted (has iv:tag:cipher format with base64 chars)
+  if (ENCRYPTED_SHAPE.test(value)) {
     try {
       decrypt(value)
       return value // Already encrypted and valid
     } catch {
-      // Not encrypted, proceed to encrypt
+      // Looks encrypted but is not — caller intended plaintext containing colons.
+      // Fall through and re-encrypt.
     }
   }
   return encrypt(value)
@@ -71,14 +89,17 @@ export function encryptField(value: string | null | undefined): string | null {
 
 /**
  * Decrypts a value if it's encrypted, returns as-is otherwise.
+ * M4: se o valor TEM formato de ciphertext mas o decrypt falha,
+ * lançamos — sinal de chave errada ou dados corrompidos, NUNCA
+ * devolve ciphertext bruto para a aplicação como se fosse plaintext.
  */
 export function decryptField(value: string | null | undefined): string | null {
   if (!value) return null
-  try {
-    return decrypt(value)
-  } catch {
-    return value // Not encrypted, return as-is
+  if (!ENCRYPTED_SHAPE.test(value)) {
+    // Legacy plaintext (ou valor pequeno sem ':'), passa direto.
+    return value
   }
+  return decrypt(value)
 }
 
 /**

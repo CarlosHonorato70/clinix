@@ -4,6 +4,41 @@ import { eq } from 'drizzle-orm'
 import type { AsaasWebhookPayload } from '@/lib/billing/asaas'
 import { writeAuditLog } from '@/lib/audit/logger'
 import { logger } from '@/lib/logging/logger'
+import { invalidateTenantStatusCache } from '@/lib/auth/middleware'
+import { redis, isRedisAvailable } from '@/lib/db/redis'
+
+// A6: idempotência + ordering para webhooks Asaas.
+// - Eventos duplicados (mesmo id) são ignorados por 7 dias.
+// - Eventos com dateCreated anterior ao último processado para a
+//   mesma subscription são ignorados (proteção contra retries que
+//   chegam fora de ordem e podem downgradar um tenant já ativo).
+async function shouldProcessEvent(
+  eventId: string | undefined,
+  eventDate: string | undefined,
+  subscriptionId: string | undefined,
+): Promise<{ process: boolean; reason?: string }> {
+  const available = await isRedisAvailable()
+  if (!available) return { process: true } // fail-open: processar sem Redis
+
+  if (eventId) {
+    const seenKey = `asaas:evt:${eventId}`
+    const wasSet = await redis.set(seenKey, '1', 'EX', 7 * 24 * 3600, 'NX')
+    if (wasSet === null) {
+      return { process: false, reason: 'duplicate-event-id' }
+    }
+  }
+
+  if (subscriptionId && eventDate) {
+    const lastKey = `asaas:sub-last:${subscriptionId}`
+    const last = await redis.get(lastKey)
+    if (last && new Date(eventDate).getTime() < new Date(last).getTime()) {
+      return { process: false, reason: 'out-of-order' }
+    }
+    await redis.set(lastKey, eventDate, 'EX', 30 * 24 * 3600)
+  }
+
+  return { process: true }
+}
 
 /**
  * Webhook endpoint for Asaas payment events.
@@ -39,7 +74,17 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  logger.info({ event: payload.event, paymentId: payload.payment?.id }, '[Webhook] Event received')
+  logger.info({ event: payload.event, paymentId: payload.payment?.id, eventId: payload.id }, '[Webhook] Event received')
+
+  const subId = payload.payment?.subscription || payload.subscription?.id
+  const gate = await shouldProcessEvent(payload.id, payload.dateCreated, subId)
+  if (!gate.process) {
+    logger.info(
+      { eventId: payload.id, event: payload.event, reason: gate.reason },
+      '[Webhook] Skipped (idempotency/ordering)'
+    )
+    return Response.json({ received: true, skipped: gate.reason })
+  }
 
   try {
     switch (payload.event) {
@@ -56,6 +101,7 @@ export async function POST(req: Request) {
           .returning({ id: tenants.id })
 
         if (tenant) {
+          invalidateTenantStatusCache(tenant.id)
           logger.info({ tenantId: tenant.id, event: payload.event }, '[Webhook] Tenant activated')
           writeAuditLog({
             tenantId: tenant.id,
@@ -81,6 +127,7 @@ export async function POST(req: Request) {
           .returning({ id: tenants.id })
 
         if (tenant) {
+          invalidateTenantStatusCache(tenant.id)
           logger.warn({ tenantId: tenant.id }, '[Webhook] Tenant suspended (overdue)')
           writeAuditLog({
             tenantId: tenant.id,
@@ -107,6 +154,7 @@ export async function POST(req: Request) {
           .returning({ id: tenants.id })
 
         if (tenant) {
+          invalidateTenantStatusCache(tenant.id)
           logger.info({ tenantId: tenant.id }, '[Webhook] Tenant cancelled')
           writeAuditLog({
             tenantId: tenant.id,
@@ -133,6 +181,7 @@ export async function POST(req: Request) {
           .returning({ id: tenants.id })
 
         if (tenant) {
+          invalidateTenantStatusCache(tenant.id)
           logger.warn({ tenantId: tenant.id, event: payload.event }, '[Webhook] Tenant suspended (chargeback/refund)')
         }
         break

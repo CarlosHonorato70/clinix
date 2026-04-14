@@ -104,6 +104,10 @@ export type AsaasWebhookEvent =
   | 'SUBSCRIPTION_DELETED'
 
 export interface AsaasWebhookPayload {
+  // A6: id é o identificador único do evento (usado para idempotência).
+  // dateCreated permite rejeitar eventos antigos chegando fora de ordem.
+  id?: string
+  dateCreated?: string
   event: AsaasWebhookEvent
   payment?: {
     id: string

@@ -5,11 +5,14 @@ import { eq, and, desc } from 'drizzle-orm'
 import { writeAuditLog } from '@/lib/audit/logger'
 import { validateBody, isValidationError } from '@/lib/validation/validate'
 import { consultaCreateSchema } from '@/lib/validation/schemas'
+import { parsePagination } from '@/lib/api/helpers'
 
 export const GET = withAuth(async (req, ctx) => {
   const url = new URL(req.url)
   const pacienteId = url.searchParams.get('paciente_id')
   const medicoId = url.searchParams.get('medico_id')
+  // M6: paginação configurável (cap em 100 via parsePagination)
+  const { limit, offset } = parsePagination(url.searchParams)
 
   const conditions = [eq(consultas.tenantId, ctx.tenantId)]
 
@@ -47,7 +50,8 @@ export const GET = withAuth(async (req, ctx) => {
     .leftJoin(usuarios, eq(consultas.medicoId, usuarios.id))
     .where(and(...conditions))
     .orderBy(desc(consultas.dataAtendimento))
-    .limit(20)
+    .limit(limit)
+    .offset(offset)
 
   return Response.json({ consultas: results })
 }, ['admin', 'medico'])

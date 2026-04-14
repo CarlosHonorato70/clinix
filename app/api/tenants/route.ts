@@ -68,11 +68,22 @@ export async function POST(req: Request) {
       tenantStatus: 'trial',
     }
 
-    // Fire-and-forget welcome email
-    sendWelcomeEmail(email, nomeClinica, nomeAdmin).catch(() => {})
-
     const accessToken = signAccessToken(payload)
     const refreshToken = signRefreshToken(payload)
+
+    // A5: aguarda (com timeout curto) o envio do email de welcome
+    // antes de responder, evitando race condition onde o processo
+    // Node pode entrar em idle e a promise fire-and-forget ser
+    // abandonada. Falha no email NUNCA deve bloquear o signup —
+    // se o envio demorar mais que 3s, seguimos em frente.
+    try {
+      await Promise.race([
+        sendWelcomeEmail(email, nomeClinica, nomeAdmin),
+        new Promise((resolve) => setTimeout(resolve, 3000)),
+      ])
+    } catch (emailErr) {
+      console.error('[Signup] Welcome email failed (non-blocking):', emailErr)
+    }
 
     const response = Response.json({
       tenant: { id: tenant.id, nome: tenant.nome, subdominio: tenant.subdominio },

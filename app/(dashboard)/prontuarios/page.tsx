@@ -216,13 +216,42 @@ export default function ProntuariosPage() {
                   </tbody>
                 </table>
                 <div style={{ borderTop: '1px solid var(--border)', margin: '12px 0' }} />
-                <a href="/faturamento" style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: 34,
-                  borderRadius: 8, background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',
-                  color: '#34d399', fontSize: 13, fontWeight: 600, textDecoration: 'none', gap: 6, cursor: 'pointer',
+
+                {/* Aviso de revisão humana obrigatória */}
+                <div style={{
+                  padding: '10px 12px', marginBottom: 12,
+                  background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)',
+                  borderRadius: 6, display: 'flex', alignItems: 'flex-start', gap: 8,
                 }}>
-                  Enviar para faturamento →
-                </a>
+                  <span style={{ fontSize: 14, color: '#fbbf24' }}>⚠</span>
+                  <div style={{ fontSize: 11.5, color: 'var(--text2)', lineHeight: 1.5 }}>
+                    <strong style={{ color: '#fbbf24' }}>Revisão obrigatória.</strong> A extração IA é uma sugestão. Confirme os códigos antes de enviar para faturamento.
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => { setExtraction(null); setExtractState('idle'); notify('Extração rejeitada. Edite o texto e tente novamente.', 'warning') }}
+                    style={{
+                      flex: 1, height: 34, borderRadius: 8,
+                      background: 'transparent', border: '1px solid var(--border2)',
+                      color: 'var(--text2)', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+                    }}
+                  >
+                    Rejeitar
+                  </button>
+                  <button
+                    onClick={() => { notify('Extração confirmada! Enviando para faturamento...', 'success'); setTimeout(() => { window.location.href = '/faturamento' }, 800) }}
+                    style={{
+                      flex: 2, height: 34, borderRadius: 8,
+                      background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',
+                      color: '#34d399', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    }}
+                  >
+                    ✓ Confirmar e enviar para faturamento
+                  </button>
+                </div>
               </>
             )}
 

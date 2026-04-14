@@ -5,7 +5,7 @@
  * regras aprendidas do convênio e histórico de glosas similares.
  */
 
-import { openai, isAIAvailable } from './openai'
+import { isAIAvailable, safeChatCompletion } from './openai'
 import { generateEmbedding } from './embeddings'
 import { db } from '@/lib/db'
 import { convenioRegrasAprendidas, glosaEmbeddings } from '@/lib/db/schema'
@@ -109,7 +109,7 @@ export async function gerarArgumentacaoRecurso(input: RecursoInput): Promise<Rec
   const procs = input.procedimentos.map((p) => `${p.codigo} - ${p.descricao} (R$ ${p.valor.toFixed(2)})`).join('\n')
 
   try {
-    const response = await openai!.chat.completions.create({
+    const response = await safeChatCompletion({
       model: 'gpt-4o',
       temperature: 0.3,
       max_tokens: 1500,

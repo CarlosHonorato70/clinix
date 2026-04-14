@@ -1,4 +1,4 @@
-import { openai, isAIAvailable } from './openai'
+import { openai, isAIAvailable, safeChatCompletion } from './openai'
 
 export interface TussExtraction {
   cid10_principal: string
@@ -17,7 +17,7 @@ export async function extractTussCodes(
     return null // Fallback: return null when AI is unavailable
   }
 
-  const response = await openai.chat.completions.create({
+  const response = await safeChatCompletion({
     model: 'gpt-4o',
     temperature: 0,
     response_format: { type: 'json_object' },

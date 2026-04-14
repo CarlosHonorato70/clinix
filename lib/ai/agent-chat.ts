@@ -1,4 +1,4 @@
-import { openai, isAIAvailable } from './openai'
+import { openai, isAIAvailable, safeChatCompletion } from './openai'
 import { findAgentResponse } from '@/lib/data'
 import { db } from '@/lib/db'
 import { convenioRegrasAprendidas } from '@/lib/db/schema'
@@ -34,7 +34,7 @@ export async function processAgentMessage(
     : ''
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await safeChatCompletion({
       model: 'gpt-4o',
       temperature: 0.7,
       messages: [

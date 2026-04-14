@@ -239,9 +239,9 @@ function PorMedico({ doctor, appointments, docIdx }: { doctor: Doctor; appointme
 }
 
 // ─── Nav Button ─────────────────────────────────────────────────────────────
-function NavBtn({ label }: { label: string }) {
+function NavBtn({ label, onClick }: { label: string; onClick?: () => void }) {
   return (
-    <button style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--text2)', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s', flexShrink: 0 }}
+    <button onClick={onClick} style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--text2)', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s', flexShrink: 0 }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--text)' }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text2)' }}
     >
@@ -250,12 +250,216 @@ function NavBtn({ label }: { label: string }) {
   )
 }
 
+// ─── Day View ───────────────────────────────────────────────────────────────
+function DiaView({ doctors, appointments, currentDate }: { doctors: Doctor[]; appointments: Appointment[]; currentDate: Date }) {
+  const dayAppts = appointments.filter((a) => {
+    const d = new Date(a.dataHora)
+    return d.toDateString() === currentDate.toDateString()
+  }).sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime())
+
+  return (
+    <Card style={{ padding: 0, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+          {currentDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text3)', fontFamily: 'var(--mono)', marginTop: 2 }}>
+          {dayAppts.length} {dayAppts.length === 1 ? 'agendamento' : 'agendamentos'}
+        </div>
+      </div>
+      <div style={{ maxHeight: 'calc(100vh - 260px)', overflowY: 'auto' }}>
+        {dayAppts.length === 0 ? (
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--text3)', fontSize: 13 }}>Nenhum agendamento para hoje</div>
+        ) : (
+          dayAppts.map((appt) => {
+            const hora = new Date(appt.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            const doctor = doctors.find((d) => d.id === appt.medico?.id)
+            const docIdx = doctors.findIndex((d) => d.id === appt.medico?.id)
+            const color = doctor?.corAgenda ?? getDocColor(docIdx >= 0 ? docIdx : 0)
+            const bg = getDocBg(docIdx >= 0 ? docIdx : 0)
+            return (
+              <div key={appt.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 18px', borderBottom: '1px solid var(--border)', borderLeft: `3px solid ${color}`, background: bg }}>
+                <div style={{ fontFamily: 'var(--mono)', fontSize: 14, color: 'var(--text)', fontWeight: 600, minWidth: 60 }}>{hora}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {appt.paciente?.nome ?? '—'}
+                    {(appt.riscoNoshow ?? 0) > 0.5 && <span style={{ color: '#fbbf24', fontSize: 12 }} title="Risco no-show">⚠</span>}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>{appt.medico?.nome ?? '—'}</span>
+                    <span>·</span>
+                    <span>{appt.duracaoMin ?? 30} min</span>
+                  </div>
+                </div>
+                <Badge color="default" style={{ fontSize: 10, padding: '3px 8px' }}>{appt.convenio?.nome ?? 'Particular'}</Badge>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </Card>
+  )
+}
+
+// ─── Week View ───────────────────────────────────────────────────────────────
+function SemanaView({ doctors, appointments, currentDate }: { doctors: Doctor[]; appointments: Appointment[]; currentDate: Date }) {
+  // Get Monday of current week
+  const weekStart = new Date(currentDate)
+  const dayOfWeek = weekStart.getDay()
+  const diff = weekStart.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+  weekStart.setDate(diff)
+  weekStart.setHours(0, 0, 0, 0)
+
+  const days: Date[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart)
+    d.setDate(weekStart.getDate() + i)
+    days.push(d)
+  }
+
+  return (
+    <Card style={{ padding: 0, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+          Semana {weekStart.getDate()} - {days[6].getDate()} de {weekStart.toLocaleDateString('pt-BR', { month: 'long' })}
+        </div>
+      </div>
+      <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 'calc(100vh - 260px)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 900 }}>
+          <thead>
+            <tr>
+              <th style={{ ...thStyle, width: 72, textAlign: 'center' }}>Hora</th>
+              {days.map((day, i) => (
+                <th key={i} style={{ ...thStyle, minWidth: 120 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>
+                    {day.toLocaleDateString('pt-BR', { weekday: 'short' })}
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text2)', marginTop: 2 }}>
+                    {day.getDate()}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {TIME_SLOTS.map((slot) => (
+              <tr key={slot}>
+                <td style={{ ...tdBase, padding: '0 8px', textAlign: 'center', verticalAlign: 'middle', height: 54, width: 72 }}>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text3)' }}>{slot}</span>
+                </td>
+                {days.map((day, dIdx) => {
+                  const appt = appointments.find((a) => {
+                    const ad = new Date(a.dataHora)
+                    const t = ad.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                    return ad.toDateString() === day.toDateString() && t === slot
+                  })
+                  const docIdx = appt ? doctors.findIndex((d) => d.id === appt.medico?.id) : -1
+                  const color = docIdx >= 0 ? (doctors[docIdx].corAgenda ?? getDocColor(docIdx)) : '#3b82f6'
+                  const bg = docIdx >= 0 ? getDocBg(docIdx) : 'transparent'
+                  return (
+                    <td key={dIdx} style={{ ...tdBase, minWidth: 120 }}>
+                      {appt ? (
+                        <div style={{ margin: 3, padding: '5px 7px', borderRadius: 6, background: bg, borderLeft: `2px solid ${color}`, minHeight: 42 }}>
+                          <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--text)', lineHeight: 1.35, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {appt.paciente?.nome ?? '—'}
+                          </div>
+                          <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1, fontFamily: 'var(--mono)' }}>{appt.convenio?.nome ?? 'Particular'}</div>
+                        </div>
+                      ) : (
+                        <div style={{ height: 48, background: 'var(--bg3)', margin: 3, borderRadius: 6, opacity: 0.4 }} />
+                      )}
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  )
+}
+
+// ─── Month View ───────────────────────────────────────────────────────────────
+function MesView({ appointments, currentDate }: { appointments: Appointment[]; currentDate: Date }) {
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+
+  // First day of month
+  const firstDay = new Date(year, month, 1)
+  // Last day of month
+  const lastDay = new Date(year, month + 1, 0)
+
+  // Start from Monday of the first week
+  const startDate = new Date(firstDay)
+  const dayOfWeek = firstDay.getDay()
+  const offset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  startDate.setDate(firstDay.getDate() + offset)
+
+  // 6 weeks × 7 days = 42 cells
+  const cells: Date[] = []
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(startDate)
+    d.setDate(startDate.getDate() + i)
+    cells.push(d)
+  }
+
+  const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+
+  return (
+    <Card style={{ padding: 0, overflow: 'hidden' }}>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+          {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+        </div>
+      </div>
+      <div style={{ padding: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 2 }}>
+          {weekdays.map((d) => (
+            <div key={d} style={{ padding: '6px 8px', fontSize: 10, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{d}</div>
+          ))}
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+          {cells.map((cell, i) => {
+            const isCurrentMonth = cell.getMonth() === month
+            const isToday = cell.toDateString() === new Date().toDateString()
+            const dayAppts = appointments.filter((a) => new Date(a.dataHora).toDateString() === cell.toDateString())
+            return (
+              <div key={i} style={{
+                minHeight: 80, padding: 6, borderRadius: 6,
+                background: isCurrentMonth ? 'var(--bg3)' : 'transparent',
+                border: isToday ? '1px solid var(--accent)' : '1px solid var(--border)',
+                opacity: isCurrentMonth ? 1 : 0.4,
+              }}>
+                <div style={{ fontSize: 11, fontWeight: isToday ? 700 : 500, color: isToday ? 'var(--accent)' : 'var(--text2)', marginBottom: 4 }}>
+                  {cell.getDate()}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {dayAppts.slice(0, 3).map((a, idx) => (
+                    <div key={idx} style={{ fontSize: 9, padding: '1px 4px', borderRadius: 3, background: 'rgba(59,130,246,0.15)', color: '#93bbfc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {new Date(a.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} {a.paciente?.nome?.split(' ')[0] ?? '—'}
+                    </div>
+                  ))}
+                  {dayAppts.length > 3 && (
+                    <div style={{ fontSize: 9, color: 'var(--text3)' }}>+{dayAppts.length - 3}</div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 // ─── Main Page ──────────────────────────────────────────────────────────────
-type ViewMode = 'visao-geral' | 'por-medico'
+type ViewMode = 'visao-geral' | 'por-medico' | 'dia' | 'semana' | 'mes'
 
 export default function AgendaPage() {
   const [mode, setMode] = useState<ViewMode>('visao-geral')
   const [activeDocIdx, setActiveDocIdx] = useState(0)
+  const [currentDate, setCurrentDate] = useState(new Date())
 
   const { data: docData } = useApi<{ doctors: Doctor[] }>('/medicos')
   const { data: agendaData } = useApi<{ agendamentos: Appointment[] }>('/agenda')
@@ -264,13 +468,40 @@ export default function AgendaPage() {
   const appointments = agendaData?.agendamentos ?? []
   const activeDoc = doctors[activeDocIdx] ?? doctors[0]
 
+  function navigateDate(direction: 'prev' | 'next') {
+    const d = new Date(currentDate)
+    if (mode === 'mes') d.setMonth(d.getMonth() + (direction === 'prev' ? -1 : 1))
+    else if (mode === 'semana') d.setDate(d.getDate() + (direction === 'prev' ? -7 : 7))
+    else d.setDate(d.getDate() + (direction === 'prev' ? -1 : 1))
+    setCurrentDate(d)
+  }
+
+  function formatDateLabel(): string {
+    if (mode === 'mes') return currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    if (mode === 'semana') {
+      const start = new Date(currentDate)
+      const dow = start.getDay()
+      start.setDate(start.getDate() - dow + (dow === 0 ? -6 : 1))
+      const end = new Date(start)
+      end.setDate(start.getDate() + 6)
+      return `${start.getDate()}/${start.getMonth() + 1} - ${end.getDate()}/${end.getMonth() + 1}`
+    }
+    return currentDate.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Card style={{ padding: '12px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: 3, gap: 2, flexShrink: 0 }}>
-            {(['visao-geral', 'por-medico'] as ViewMode[]).map((v) => {
-              const label = v === 'visao-geral' ? 'Visão geral' : 'Por médico'
+          <div style={{ display: 'flex', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: 3, gap: 2, flexShrink: 0, flexWrap: 'wrap' }}>
+            {(['dia', 'semana', 'mes', 'visao-geral', 'por-medico'] as ViewMode[]).map((v) => {
+              const labels: Record<ViewMode, string> = {
+                'dia': 'Dia',
+                'semana': 'Semana',
+                'mes': 'Mês',
+                'visao-geral': 'Visão geral',
+                'por-medico': 'Por médico',
+              }
               const isActive = mode === v
               return (
                 <button key={v} onClick={() => setMode(v)} style={{
@@ -279,7 +510,7 @@ export default function AgendaPage() {
                   background: isActive ? 'var(--bg2)' : 'transparent',
                   border: isActive ? '1px solid var(--border2)' : '1px solid transparent', cursor: 'pointer', transition: 'all 0.15s',
                 }}>
-                  {label}
+                  {labels[v]}
                 </button>
               )
             })}
@@ -309,14 +540,14 @@ export default function AgendaPage() {
             </div>
           )}
 
-          {mode === 'visao-geral' && <div style={{ flex: 1 }} />}
+          {mode !== 'por-medico' && <div style={{ flex: 1 }} />}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <NavBtn label="←" />
+            <NavBtn label="←" onClick={() => navigateDate('prev')} />
             <span style={{ fontSize: 12, color: 'var(--text2)', fontFamily: 'var(--mono)', padding: '0 6px', whiteSpace: 'nowrap' }}>
-              {new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}
+              {formatDateLabel()}
             </span>
-            <NavBtn label="→" />
+            <NavBtn label="→" onClick={() => navigateDate('next')} />
             <button style={{
               marginLeft: 8, height: 30, padding: '0 14px', borderRadius: 7,
               background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: '1px solid rgba(139,92,246,0.5)',
@@ -334,6 +565,12 @@ export default function AgendaPage() {
         <Card style={{ padding: 40, textAlign: 'center' }}>
           <div style={{ fontSize: 14, color: 'var(--text3)' }}>Carregando agenda...</div>
         </Card>
+      ) : mode === 'dia' ? (
+        <DiaView doctors={doctors} appointments={appointments} currentDate={currentDate} />
+      ) : mode === 'semana' ? (
+        <SemanaView doctors={doctors} appointments={appointments} currentDate={currentDate} />
+      ) : mode === 'mes' ? (
+        <MesView appointments={appointments} currentDate={currentDate} />
       ) : mode === 'visao-geral' ? (
         <VisaoGeral doctors={doctors} appointments={appointments} />
       ) : activeDoc ? (

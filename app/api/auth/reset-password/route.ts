@@ -20,14 +20,24 @@ export async function POST(req: Request) {
   }
 
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET!)
-    const { payload } = await jwtVerify(token, secret)
+    // Crítico 3: valida com secret separado + audience/issuer estritos.
+    // Mesmo que JWT_SECRET vaze, tokens normais não podem ser usados como reset.
+    const resetSecretRaw = process.env.PASSWORD_RESET_SECRET || process.env.JWT_SECRET!
+    const secret = new TextEncoder().encode(resetSecretRaw)
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: 'clinix:auth',
+      audience: 'clinix:password-reset',
+    })
 
+    // Defense-in-depth: strict type check (rejects tokens without the claim)
     if (payload.type !== 'password-reset') {
       return Response.json({ error: 'Token inválido' }, { status: 400 })
     }
 
     const userId = payload.userId as string
+    if (!userId || typeof userId !== 'string') {
+      return Response.json({ error: 'Token inválido' }, { status: 400 })
+    }
     const senhaHash = await bcrypt.hash(newPassword, 12)
 
     await db

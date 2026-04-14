@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { tenants } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { isTokenBlacklisted } from '@/lib/auth/token-blacklist'
 
 export interface AuthContext {
   userId: string
@@ -50,6 +51,38 @@ export function withAuth(handler: AuthenticatedHandler, allowedRoles?: string[])
 
     if (!userId || !tenantId || !role || !email) {
       return Response.json({ error: 'Token não fornecido' }, { status: 401 })
+    }
+
+    // Crítico 1: verificar se access token foi revogado (logout)
+    const accessToken = req.cookies.get('clinix-access-token')?.value
+    if (accessToken && await isTokenBlacklisted(accessToken)) {
+      return Response.json({ error: 'Sessão encerrada. Faça login novamente.' }, { status: 401 })
+    }
+
+    // Crítico 2: CSRF protection via Origin/Referer check para mutations
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      const origin = req.headers.get('origin')
+      const referer = req.headers.get('referer')
+      const host = req.headers.get('host')
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+
+      const allowedOrigins = [
+        appUrl,
+        `https://${host}`,
+        `http://${host}`,
+        'https://clinixproia.com.br',
+        'https://app.clinixproia.com.br',
+      ].filter(Boolean)
+
+      const source = origin || referer || ''
+      const isAllowed = source === '' || allowedOrigins.some((allowed) => source.startsWith(allowed))
+
+      if (!isAllowed) {
+        return Response.json(
+          { error: 'Origem não autorizada (CSRF)' },
+          { status: 403 }
+        )
+      }
     }
 
     if (allowedRoles && !allowedRoles.includes(role) && role !== 'admin') {

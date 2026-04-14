@@ -33,9 +33,15 @@ export async function POST(req: Request) {
     if (!user) return successResponse
 
     // Generate reset token (1h expiry)
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET!)
+    // Crítico 3: uses separate secret + strict audience/issuer validation
+    // to prevent reuse of regular access tokens as password reset tokens.
+    const resetSecretRaw = process.env.PASSWORD_RESET_SECRET || process.env.JWT_SECRET!
+    const secret = new TextEncoder().encode(resetSecretRaw)
     const resetToken = await new SignJWT({ userId: user.id, type: 'password-reset' })
       .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('clinix:auth')
+      .setAudience('clinix:password-reset')
+      .setIssuedAt()
       .setExpirationTime('1h')
       .sign(secret)
 

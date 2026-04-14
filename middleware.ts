@@ -13,6 +13,7 @@ const PUBLIC_PREFIX = [
   '/api/billing/webhook',
   '/api/tenants',
   '/api/health',
+  '/api/tiss/mock/', // Mock SOAP endpoint (server-to-server internal call)
   '/_next',
   '/favicon',
 ]

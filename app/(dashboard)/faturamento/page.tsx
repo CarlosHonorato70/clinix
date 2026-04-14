@@ -198,12 +198,57 @@ export default function FaturamentoPage() {
       )}
 
       <Card style={{ padding: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--border)', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Guias em processo</span>
             <AIChip label="IA auditando" size="sm" />
           </div>
-          <span style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>{guias.length} guias</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>{guias.length} guias</span>
+            <button
+              onClick={async () => {
+                try {
+                  notify('Gerando lote XML TISS...', 'info')
+                  const res = await fetch('/api/faturamento/exportar-xml?status=pendente_envio', {
+                    credentials: 'include',
+                  })
+                  if (!res.ok) {
+                    const err = await res.json().catch(() => ({ error: 'Erro' }))
+                    notify(err.error || 'Nenhuma guia pronta para envio', 'error')
+                    return
+                  }
+                  const count = res.headers.get('X-Clinix-Guias-Count')
+                  const disposition = res.headers.get('Content-Disposition') || ''
+                  const match = disposition.match(/filename="([^"]+)"/)
+                  const filename = match ? match[1] : 'lote_tiss.xml'
+                  const blob = await res.blob()
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = filename
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(url)
+                  notify(`${count ?? ''} guias exportadas em ${filename}`, 'success')
+                } catch {
+                  notify('Erro ao exportar XML', 'error')
+                }
+              }}
+              style={{
+                height: 30, padding: '0 14px', borderRadius: 7,
+                background: 'transparent', border: '1px solid var(--border2)',
+                color: 'var(--text2)', fontSize: 12, fontWeight: 500,
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                cursor: 'pointer', transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'var(--text)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--text2)' }}
+            >
+              <span style={{ fontSize: 13 }}>↓</span>
+              Exportar lote XML TISS
+            </button>
+          </div>
         </div>
 
         <div style={{ overflowX: 'auto' }}>

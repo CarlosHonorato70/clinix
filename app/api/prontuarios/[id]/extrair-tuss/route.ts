@@ -22,38 +22,50 @@ export const POST = withAuth(async (req: NextRequest, ctx) => {
     return Response.json({ error: 'Consulta não encontrada' }, { status: 404 })
   }
 
-  const extraction = await extractTussCodes(
+  const result = await extractTussCodes(
     consulta.anamnese || '',
     consulta.exameFisico || '',
     consulta.conduta || '',
+    ctx.tenantId,
   )
 
-  if (!extraction) {
-    // Return simulated extraction when AI is not available
-    const simulated = {
-      cid10_principal: 'I20',
-      cid10_secundarios: ['I10'],
-      procedimentos: [
-        { tuss: '10101012', descricao: 'Consulta em consultório (clínica médica)', quantidade: 1 },
-        { tuss: '40304361', descricao: 'Eletrocardiograma com esforço', quantidade: 1 },
-        { tuss: '40302558', descricao: 'Troponina I (quantitativa)', quantidade: 1 },
-      ],
-      tipo_consulta: 'retorno',
-      observacao_auditoria: 'Extração simulada — configure OPENAI_API_KEY para extração real',
-    }
-
-    await db
-      .update(consultas)
-      .set({ iaExtraido: simulated })
-      .where(eq(consultas.id, id))
-
-    return Response.json({ extraction: simulated, source: 'simulated' })
+  if (result.source === 'paused') {
+    return Response.json(
+      {
+        error: 'Extração IA temporariamente pausada',
+        reason: 'Taxa de rejeição/erros alta. Entre em contato com o suporte ou faça extração manual.',
+      },
+      { status: 503 }
+    )
   }
 
+  if (result.source === 'unavailable') {
+    return Response.json(
+      {
+        error: 'Extração IA indisponível',
+        reason: 'Serviço OpenAI não configurado ou indisponível. Use extração manual.',
+      },
+      { status: 503 }
+    )
+  }
+
+  // Save extraction result (only if validation says it's usable)
   await db
     .update(consultas)
-    .set({ iaExtraido: extraction })
+    .set({
+      iaExtraido: {
+        ...result.raw,
+        _validation: result.validation,
+        _inferenceId: result.inferenceId,
+      },
+    })
     .where(eq(consultas.id, id))
 
-  return Response.json({ extraction, source: 'gpt-4o' })
+  return Response.json({
+    extraction: result.raw,
+    validation: result.validation,
+    inferenceId: result.inferenceId,
+    source: result.source,
+    requiresReview: result.validation.requiresReview,
+  })
 }, ['admin', 'medico'])

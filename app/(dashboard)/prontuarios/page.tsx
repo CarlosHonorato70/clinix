@@ -63,7 +63,14 @@ export default function ProntuariosPage() {
   )
 
   const [extractState, setExtractState] = useState<'idle' | 'loading' | 'done'>('idle')
-  const [extraction, setExtraction] = useState<{ cids: { code: string; desc: string }[]; tuss: { code: string; desc: string; qty: number }[] } | null>(null)
+  const [extraction, setExtraction] = useState<{
+    cids: { code: string; desc: string; isValid?: boolean }[]
+    tuss: { code: string; desc: string; qty: number; confianca?: number; isValid?: boolean; errors?: string[] }[]
+    confianca_geral?: number
+    requiresReview?: boolean
+    inferenceId?: string | null
+    observacao?: string | null
+  } | null>(null)
 
   async function handleExtract() {
     if (extractState === 'loading') return
@@ -75,7 +82,39 @@ export default function ProntuariosPage() {
         const result = await apiPost(`/prontuarios/${lastConsulta.id}/extrair-tuss`, {
           anamnese, exameFisico: exame, conduta,
         })
-        setExtraction(result.extraction ?? result)
+        // Map new validated response to UI format
+        const raw = result.extraction
+        const validation = result.validation
+        if (raw && validation) {
+          setExtraction({
+            cids: [
+              {
+                code: validation.cid10_principal.code,
+                desc: raw.cid10_principal,
+                isValid: validation.cid10_principal.isValid,
+              },
+              ...validation.cid10_secundarios.map((c: { code: string; isValid: boolean }) => ({
+                code: c.code,
+                desc: c.code,
+                isValid: c.isValid,
+              })),
+            ],
+            tuss: validation.procedimentos.map((p: { tuss: string; descricao: string; quantidade: number; confianca: number; isValid: boolean; errors: string[] }) => ({
+              code: p.tuss,
+              desc: p.descricao,
+              qty: p.quantidade,
+              confianca: p.confianca,
+              isValid: p.isValid,
+              errors: p.errors,
+            })),
+            confianca_geral: raw.confianca_geral,
+            requiresReview: result.requiresReview,
+            inferenceId: result.inferenceId,
+            observacao: raw.observacao_auditoria,
+          })
+        } else {
+          setExtraction(result.extraction ?? result)
+        }
       } else {
         // Fallback: simulated extraction
         await new Promise((r) => setTimeout(r, 1500))
@@ -184,12 +223,41 @@ export default function ProntuariosPage() {
 
             {extractState === 'done' && extraction && (
               <>
+                {/* Confiança geral */}
+                {typeof extraction.confianca_geral === 'number' && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 12px', marginBottom: 12,
+                    background: extraction.confianca_geral >= 0.9 ? 'rgba(16,185,129,0.08)'
+                      : extraction.confianca_geral >= 0.7 ? 'rgba(251,191,36,0.08)'
+                      : 'rgba(239,68,68,0.08)',
+                    border: `1px solid ${
+                      extraction.confianca_geral >= 0.9 ? 'rgba(16,185,129,0.25)'
+                      : extraction.confianca_geral >= 0.7 ? 'rgba(251,191,36,0.25)'
+                      : 'rgba(239,68,68,0.25)'
+                    }`,
+                    borderRadius: 6,
+                  }}>
+                    <span style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Confiança da extração
+                    </span>
+                    <span style={{
+                      fontSize: 13, fontWeight: 700,
+                      color: extraction.confianca_geral >= 0.9 ? '#34d399'
+                        : extraction.confianca_geral >= 0.7 ? '#fbbf24'
+                        : '#f87171',
+                    }}>
+                      {Math.round(extraction.confianca_geral * 100)}% · {extraction.confianca_geral >= 0.9 ? 'Alta' : extraction.confianca_geral >= 0.7 ? 'Média' : 'Baixa'}
+                    </span>
+                  </div>
+                )}
+
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text3)', marginBottom: 7 }}>CID-10</div>
                   <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                    {extraction.cids.map((c) => (
-                      <span key={c.code} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 500 }}>
-                        <Badge color="red">{c.code}</Badge>
+                    {extraction.cids.map((c, idx) => (
+                      <span key={`${c.code}-${idx}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 500 }}>
+                        <Badge color={c.isValid === false ? 'red' : 'blue'}>{c.code}{c.isValid === false && ' ⚠'}</Badge>
                         <span style={{ color: 'var(--text2)', fontSize: 12 }}>{c.desc}</span>
                       </span>
                     ))}
@@ -200,21 +268,51 @@ export default function ProntuariosPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)', background: 'rgba(255,255,255,0.02)' }}>
-                      {['Código TUSS', 'Descrição', 'Qtd'].map((col) => (
+                      {['Código TUSS', 'Descrição', 'Qtd', 'Confiança'].map((col) => (
                         <th key={col} style={{ padding: '6px 8px', textAlign: 'left', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text3)' }}>{col}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {extraction.tuss.map((item, i) => (
-                      <tr key={i} style={{ borderBottom: i < extraction.tuss.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                        <td style={{ padding: '8px', fontFamily: 'var(--mono)', fontSize: 12, color: '#93bbfc' }}>{item.code}</td>
-                        <td style={{ padding: '8px', fontSize: 12.5, color: 'var(--text)' }}>{item.desc}</td>
-                        <td style={{ padding: '8px', textAlign: 'center', fontSize: 12.5, color: 'var(--text2)' }}>{item.qty}</td>
-                      </tr>
-                    ))}
+                    {extraction.tuss.map((item, i) => {
+                      const conf = item.confianca ?? 1
+                      const confColor = conf >= 0.9 ? '#34d399' : conf >= 0.7 ? '#fbbf24' : '#f87171'
+                      const isInvalid = item.isValid === false
+                      return (
+                        <tr
+                          key={i}
+                          title={item.errors?.join('; ')}
+                          style={{
+                            borderBottom: i < extraction.tuss.length - 1 ? '1px solid var(--border)' : 'none',
+                            background: isInvalid ? 'rgba(239,68,68,0.06)' : 'transparent',
+                          }}
+                        >
+                          <td style={{ padding: '8px', fontFamily: 'var(--mono)', fontSize: 12, color: isInvalid ? '#f87171' : '#93bbfc' }}>
+                            {item.code}{isInvalid && ' ⚠'}
+                          </td>
+                          <td style={{ padding: '8px', fontSize: 12.5, color: 'var(--text)' }}>{item.desc}</td>
+                          <td style={{ padding: '8px', textAlign: 'center', fontSize: 12.5, color: 'var(--text2)' }}>{item.qty}</td>
+                          <td style={{ padding: '8px', textAlign: 'right', fontSize: 11, fontWeight: 600, color: confColor, fontFamily: 'var(--mono)' }}>
+                            {Math.round(conf * 100)}%
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
+
+                {extraction.observacao && (
+                  <div style={{
+                    marginTop: 12, padding: '10px 12px',
+                    background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)',
+                    borderRadius: 6, display: 'flex', gap: 8, alignItems: 'flex-start',
+                  }}>
+                    <span style={{ color: '#a78bfa', fontSize: 13 }}>ℹ</span>
+                    <div style={{ fontSize: 11.5, color: 'var(--text2)', lineHeight: 1.5 }}>
+                      <strong style={{ color: '#a78bfa' }}>Observação da IA:</strong> {extraction.observacao}
+                    </div>
+                  </div>
+                )}
                 <div style={{ borderTop: '1px solid var(--border)', margin: '12px 0' }} />
 
                 {/* Aviso de revisão humana obrigatória */}
@@ -231,7 +329,13 @@ export default function ProntuariosPage() {
 
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    onClick={() => { setExtraction(null); setExtractState('idle'); notify('Extração rejeitada. Edite o texto e tente novamente.', 'warning') }}
+                    onClick={async () => {
+                      if (extraction?.inferenceId) {
+                        await apiPost('/ai/feedback', { inferenceId: extraction.inferenceId, accepted: false }).catch(() => {})
+                      }
+                      setExtraction(null); setExtractState('idle')
+                      notify('Extração rejeitada. Edite o texto e tente novamente.', 'warning')
+                    }}
                     style={{
                       flex: 1, height: 34, borderRadius: 8,
                       background: 'transparent', border: '1px solid var(--border2)',
@@ -241,7 +345,13 @@ export default function ProntuariosPage() {
                     Rejeitar
                   </button>
                   <button
-                    onClick={() => { notify('Extração confirmada! Enviando para faturamento...', 'success'); setTimeout(() => { window.location.href = '/faturamento' }, 800) }}
+                    onClick={async () => {
+                      if (extraction?.inferenceId) {
+                        await apiPost('/ai/feedback', { inferenceId: extraction.inferenceId, accepted: true }).catch(() => {})
+                      }
+                      notify('Extração confirmada! Enviando para faturamento...', 'success')
+                      setTimeout(() => { window.location.href = '/faturamento' }, 800)
+                    }}
                     style={{
                       flex: 2, height: 34, borderRadius: 8,
                       background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',

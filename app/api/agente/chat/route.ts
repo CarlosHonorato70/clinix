@@ -1,5 +1,5 @@
 import { withAuth } from '@/lib/auth/middleware'
-import { findAgentResponse } from '@/lib/data'
+import { processAgentMessage } from '@/lib/ai/agent-chat'
 import { validateBody, isValidationError } from '@/lib/validation/validate'
 import { agenteChatSchema } from '@/lib/validation/schemas'
 import { checkRateLimit, rateLimitResponse, RATE_LIMITS } from '@/lib/security/rate-limit'
@@ -13,12 +13,8 @@ export const POST = withAuth(async (req, ctx) => {
   if (isValidationError(result)) return result
   const { message } = result
 
-  // For now, use the keyword-based fallback
-  // TODO: Replace with lib/ai/agent-chat.ts when OpenAI is configured
-  const response = findAgentResponse(message)
+  // Uses GPT-4o if OPENAI_API_KEY is configured, otherwise falls back to keywords
+  const { response, source } = await processAgentMessage(message, ctx.tenantId)
 
-  return Response.json({
-    response,
-    source: 'keyword_fallback',
-  })
+  return Response.json({ response, source })
 })

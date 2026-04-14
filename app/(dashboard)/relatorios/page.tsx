@@ -35,8 +35,35 @@ const REPORTS = [
 export default function RelatoriosPage() {
   const { notify } = useToast()
 
-  const handleReportClick = (title: string) => {
+  const handleReportClick = async (id: string, title: string) => {
     notify(`Gerando relatório "${title}"...`, 'info')
+    try {
+      const res = await fetch(`/api/relatorios/${id}`, { credentials: 'include' })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Erro ao gerar' }))
+        notify(err.error || 'Erro ao gerar relatório', 'error')
+        return
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+
+      // Extract filename from Content-Disposition
+      const disposition = res.headers.get('Content-Disposition') || ''
+      const match = disposition.match(/filename="([^"]+)"/)
+      a.download = match ? match[1] : `${id}.csv`
+
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      notify(`Relatório "${title}" baixado`, 'success')
+    } catch {
+      notify('Erro de conexão ao gerar relatório', 'error')
+    }
   }
 
   return (
@@ -71,7 +98,7 @@ export default function RelatoriosPage() {
         {REPORTS.map((report) => (
           <div
             key={report.id}
-            onClick={() => handleReportClick(report.title)}
+            onClick={() => handleReportClick(report.id, report.title)}
             style={{
               background: 'var(--bg3)',
               border: '1px solid var(--border)',

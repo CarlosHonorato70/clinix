@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import { useApi } from '@/lib/api/client'
+import { useToast } from '@/components/ui/Toast'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Paciente {
@@ -107,6 +108,9 @@ function PatientRow({ patient }: { patient: Paciente }) {
 export default function PacientesPage() {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { notify } = useToast()
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300)
@@ -117,7 +121,43 @@ export default function PacientesPage() {
     ? `/pacientes?q=${encodeURIComponent(debouncedSearch)}`
     : '/pacientes'
 
-  const { data, isLoading } = useApi<{ pacientes: Paciente[] }>(apiPath)
+  const { data, isLoading, mutate } = useApi<{ pacientes: Paciente[] }>(apiPath)
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      notify('Envie um arquivo .csv', 'error')
+      return
+    }
+
+    setImporting(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/pacientes/import', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      })
+      const result = await res.json()
+
+      if (!res.ok) {
+        notify(result.error || 'Erro ao importar', 'error')
+      } else {
+        const msg = `${result.imported} pacientes importados${result.errors.length > 0 ? ` · ${result.errors.length} erros` : ''}`
+        notify(msg, result.errors.length > 0 ? 'warning' : 'success')
+        mutate()
+      }
+    } catch {
+      notify('Erro de conexão ao importar', 'error')
+    } finally {
+      setImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
   const patients = data?.pacientes ?? []
 
   return (
@@ -131,19 +171,44 @@ export default function PacientesPage() {
             {patients.length} pacientes {debouncedSearch ? 'encontrados' : 'cadastrados'}
           </p>
         </div>
-        <button style={{
-          height: 34, padding: '0 16px', borderRadius: 8,
-          background: 'linear-gradient(135deg, #7c3aed, #3b82f6)',
-          border: '1px solid rgba(139,92,246,0.5)', color: '#fff',
-          fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
-          cursor: 'pointer', flexShrink: 0, transition: 'opacity 0.15s',
-        }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.88' }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-        >
-          <span style={{ fontSize: 15 }}>+</span>
-          Novo paciente
-        </button>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            onChange={handleImport}
+            style={{ display: 'none' }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            style={{
+              height: 34, padding: '0 14px', borderRadius: 8,
+              background: 'transparent', border: '1px solid var(--border2)',
+              color: 'var(--text2)', fontSize: 13, fontWeight: 500,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              cursor: importing ? 'wait' : 'pointer', transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => { if (!importing) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'var(--text)' } }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border2)'; e.currentTarget.style.color = 'var(--text2)' }}
+          >
+            <span style={{ fontSize: 14 }}>↑</span>
+            {importing ? 'Importando...' : 'Importar CSV'}
+          </button>
+          <button style={{
+            height: 34, padding: '0 16px', borderRadius: 8,
+            background: 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+            border: '1px solid rgba(139,92,246,0.5)', color: '#fff',
+            fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6,
+            cursor: 'pointer', transition: 'opacity 0.15s',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.88' }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+          >
+            <span style={{ fontSize: 15 }}>+</span>
+            Novo paciente
+          </button>
+        </div>
       </div>
 
       <Card style={{ padding: 0, overflow: 'hidden' }}>

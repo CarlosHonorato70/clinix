@@ -1,6 +1,6 @@
 import { withAuth } from '@/lib/auth/middleware'
 import { db } from '@/lib/db'
-import { agendamentos, guiasTiss } from '@/lib/db/schema'
+import { agendamentos, guiasTiss, pacientes, convenios } from '@/lib/db/schema'
 import { eq, and, gte, lte, count, sql } from 'drizzle-orm'
 
 export const GET = withAuth(async (_req, ctx) => {
@@ -57,6 +57,20 @@ export const GET = withAuth(async (_req, ctx) => {
       )
     )
 
+  // Bloco 2.2: detecta clínica nova (nenhum paciente E nenhum convênio cadastrado).
+  // Frontend usa esse flag para redirecionar para /onboarding no primeiro acesso.
+  const [pacientesCount] = await db
+    .select({ count: count() })
+    .from(pacientes)
+    .where(eq(pacientes.tenantId, ctx.tenantId))
+
+  const [conveniosCount] = await db
+    .select({ count: count() })
+    .from(convenios)
+    .where(eq(convenios.tenantId, ctx.tenantId))
+
+  const isFreshClinic = pacientesCount.count === 0 && conveniosCount.count === 0
+
   return Response.json({
     metrics: {
       consultasHoje: todayAppts.count,
@@ -64,5 +78,6 @@ export const GET = withAuth(async (_req, ctx) => {
       guiasProntas: readyGuias.count,
       faturamentoMensal: `R$ ${parseFloat(monthlyBilling.total || '0').toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
     },
+    isFreshClinic,
   })
 })

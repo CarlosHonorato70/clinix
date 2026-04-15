@@ -82,6 +82,14 @@ export const POST = withAuth(async (req, ctx) => {
     return Response.json({ subscription: { id: subscription.id, status: subscription.status } })
   } catch (error) {
     console.error('Billing subscribe error:', error)
+    // Bloco 1.3: erro claro quando ASAAS_API_KEY não está configurado
+    const msg = error instanceof Error ? error.message : String(error)
+    if (msg.includes('Billing não configurado')) {
+      return Response.json(
+        { error: 'Sistema de pagamento ainda não configurado. Entre em contato com o suporte.' },
+        { status: 503 }
+      )
+    }
     return Response.json({ error: 'Erro ao criar assinatura' }, { status: 500 })
   }
 }, ['admin'])

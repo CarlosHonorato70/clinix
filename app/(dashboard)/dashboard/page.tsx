@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Card from '@/components/ui/Card'
 import MetricCard from '@/components/ui/MetricCard'
 import Badge from '@/components/ui/Badge'
@@ -130,9 +132,17 @@ function LoadingRow({ cols }: { cols: number }) {
 
 // ─── Page ───────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { data: dashData } = useApi<DashboardMetrics>('/dashboard')
+  const router = useRouter()
+  const { data: dashData } = useApi<DashboardMetrics & { isFreshClinic?: boolean }>('/dashboard')
   const { data: agendaData } = useApi<{ agendamentos: AgendaItem[] }>('/agenda')
   const { data: guiasData } = useApi<{ guias: GuiaItem[] }>('/faturamento/guias')
+
+  // Bloco 2.2: clínica nova (sem dados) → onboarding
+  useEffect(() => {
+    if (dashData?.isFreshClinic) {
+      router.replace('/onboarding')
+    }
+  }, [dashData, router])
 
   const m = dashData?.metrics
   const agenda = agendaData?.agendamentos?.slice(0, 5) ?? []

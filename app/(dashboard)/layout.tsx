@@ -9,9 +9,9 @@ import { useApi } from '@/lib/api/client'
 
 // ─── Route metadata ───────────────────────────────────────────────────────────
 const routeMeta: Record<string, { title: string; subtitle: string }> = {
-  '/': {
+  '/dashboard': {
     title: 'Dashboard',
-    subtitle: 'Sábado, 14 de março de 2026 · Clínica São Lucas',
+    subtitle: 'Visão geral da clínica',
   },
   '/agenda': {
     title: 'Agenda',
@@ -141,7 +141,7 @@ const navSections: NavSection[] = [
   {
     title: 'Principal',
     items: [
-      { label: 'Dashboard', href: '/', icon: <IconDashboard /> },
+      { label: 'Dashboard', href: '/dashboard', icon: <IconDashboard /> },
       {
         label: 'Agenda',
         href: '/agenda',

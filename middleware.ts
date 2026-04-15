@@ -92,7 +92,7 @@ export async function middleware(request: NextRequest) {
     try {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET!)
       await jwtVerify(token, secret)
-      return NextResponse.redirect(new URL('/agenda', request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     } catch {
       // Token invalid, let them proceed to login
     }
@@ -133,7 +133,7 @@ export async function middleware(request: NextRequest) {
 
     // Authenticated user on landing page → redirect to dashboard
     if (pathname === '/') {
-      return NextResponse.redirect(new URL('/agenda', request.url))
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     // Inject user context as headers for downstream API routes

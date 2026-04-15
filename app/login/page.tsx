@@ -35,7 +35,7 @@ export default function LoginPage() {
 
       // Redirect to the page they were trying to access, or dashboard
       const params = new URLSearchParams(window.location.search)
-      router.push(params.get('redirect') || '/agenda')
+      router.push(params.get('redirect') || '/dashboard')
     } catch {
       setError('Erro de conexão')
     } finally {

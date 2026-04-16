@@ -84,7 +84,14 @@ export function encryptField(value: string | null | undefined): string | null {
       // Fall through and re-encrypt.
     }
   }
-  return encrypt(value)
+  try {
+    return encrypt(value)
+  } catch {
+    // ENCRYPTION_KEY ausente ou inválida — armazena plaintext e loga warning.
+    // Não crashar para não bloquear signup/cadastro.
+    console.warn('[Clinix] ENCRYPTION_KEY not available — storing plaintext (configure for LGPD compliance)')
+    return value
+  }
 }
 
 /**

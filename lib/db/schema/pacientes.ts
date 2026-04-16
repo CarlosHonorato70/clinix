@@ -8,11 +8,11 @@ export const pacientes = pgTable('pacientes', {
   tenantId: uuid('tenant_id').references(() => tenants.id).notNull(),
   medicoResponsavelId: uuid('medico_responsavel_id').references(() => usuarios.id),
   nome: varchar('nome', { length: 200 }).notNull(),
-  cpf: varchar('cpf', { length: 14 }), // stored encrypted in production
+  cpf: text('cpf'), // encrypted → ciphertext é ~60+ chars, não cabe em varchar(14)
   dataNascimento: date('data_nascimento'),
   sexo: char('sexo', { length: 1 }),
-  telefone: varchar('telefone', { length: 20 }),
-  email: varchar('email', { length: 200 }),
+  telefone: text('telefone'), // encrypted → idem
+  email: text('email'), // encrypted → idem
   convenioId: uuid('convenio_id').references(() => convenios.id),
   numeroCarteirinha: varchar('numero_carteirinha', { length: 50 }),
   alergias: text('alergias'),

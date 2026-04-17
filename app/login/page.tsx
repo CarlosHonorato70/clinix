@@ -89,7 +89,7 @@ export default function LoginPage() {
                 color: '#fff',
               }}
             >
-              M
+              C
             </div>
             <span style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)' }}>
               Clinix
@@ -202,16 +202,18 @@ export default function LoginPage() {
           {loading ? 'Entrando...' : 'Entrar'}
         </button>
 
-        <p
-          style={{
-            textAlign: 'center',
-            color: 'var(--text3)',
-            fontSize: 12,
-            marginTop: 24,
-          }}
-        >
-          Dev: admin@clinix.dev / clinix123
-        </p>
+        {process.env.NODE_ENV === 'development' && (
+          <p
+            style={{
+              textAlign: 'center',
+              color: 'var(--text3)',
+              fontSize: 12,
+              marginTop: 24,
+            }}
+          >
+            Dev: admin@clinix.dev / clinix123
+          </p>
+        )}
       </form>
     </div>
   )

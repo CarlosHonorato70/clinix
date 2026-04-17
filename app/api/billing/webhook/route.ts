@@ -1,207 +1,245 @@
+/**
+ * POST /api/billing/webhook
+ *
+ * Endpoint público para receber eventos do Stripe via webhook.
+ * Configure no Stripe Dashboard: POST https://app.clinixproia.com.br/api/billing/webhook
+ *
+ * Eventos tratados:
+ *   checkout.session.completed    → associa customer/subscription ao tenant, ativa
+ *   invoice.paid                  → ativa tenant
+ *   invoice.payment_failed        → suspende tenant
+ *   customer.subscription.deleted → cancela tenant
+ *
+ * Segurança: assinatura verificada com stripe.webhooks.constructEvent + STRIPE_WEBHOOK_SECRET.
+ * Idempotência: cada event.id é armazenado no Redis por 7 dias (NX flag).
+ */
+
 import { db } from '@/lib/db'
 import { tenants } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import type { AsaasWebhookPayload } from '@/lib/billing/asaas'
+import { getStripe } from '@/lib/billing/stripe'
 import { writeAuditLog } from '@/lib/audit/logger'
 import { logger } from '@/lib/logging/logger'
 import { invalidateTenantStatusCache } from '@/lib/auth/middleware'
 import { redis, isRedisAvailable } from '@/lib/db/redis'
+import type Stripe from 'stripe'
 
-// A6: idempotência + ordering para webhooks Asaas.
-// - Eventos duplicados (mesmo id) são ignorados por 7 dias.
-// - Eventos com dateCreated anterior ao último processado para a
-//   mesma subscription são ignorados (proteção contra retries que
-//   chegam fora de ordem e podem downgradar um tenant já ativo).
-async function shouldProcessEvent(
-  eventId: string | undefined,
-  eventDate: string | undefined,
-  subscriptionId: string | undefined,
-): Promise<{ process: boolean; reason?: string }> {
-  const available = await isRedisAvailable()
-  if (!available) return { process: true } // fail-open: processar sem Redis
-
-  if (eventId) {
-    const seenKey = `asaas:evt:${eventId}`
-    const wasSet = await redis.set(seenKey, '1', 'EX', 7 * 24 * 3600, 'NX')
-    if (wasSet === null) {
-      return { process: false, reason: 'duplicate-event-id' }
-    }
-  }
-
-  if (subscriptionId && eventDate) {
-    const lastKey = `asaas:sub-last:${subscriptionId}`
-    const last = await redis.get(lastKey)
-    if (last && new Date(eventDate).getTime() < new Date(last).getTime()) {
-      return { process: false, reason: 'out-of-order' }
-    }
-    await redis.set(lastKey, eventDate, 'EX', 30 * 24 * 3600)
-  }
-
-  return { process: true }
-}
+// ─── Idempotência via Redis ───────────────────────────────────────────────────
 
 /**
- * Webhook endpoint for Asaas payment events.
- * Configure in Asaas dashboard: POST https://app.clinixproia.com.br/api/billing/webhook
- *
- * Asaas sends a webhook token in the header `asaas-access-token`
- * that should match ASAAS_WEBHOOK_TOKEN env var.
- *
- * Events handled:
- * - PAYMENT_CONFIRMED / PAYMENT_RECEIVED → activate tenant
- * - PAYMENT_OVERDUE → suspend tenant after grace period (3 days)
- * - PAYMENT_DELETED → ignore (just logged)
- * - SUBSCRIPTION_CREATED → log only
- * - SUBSCRIPTION_UPDATED → log only
- * - SUBSCRIPTION_DELETED → schedule cancellation at end of paid period
+ * Retorna false se o evento já foi processado (duplicata).
+ * Registra o event.id com TTL de 7 dias.
+ * Em caso de Redis indisponível, permite processar (fail-open).
  */
+async function isNewEvent(eventId: string): Promise<boolean> {
+  const available = await isRedisAvailable()
+  if (!available) return true // fail-open: processar sem Redis
+
+  const key = `stripe:evt:${eventId}`
+  // SET key 1 EX 7d NX — retorna "OK" se inserido, null se já existia
+  const wasSet = await redis.set(key, '1', 'EX', 7 * 24 * 3600, 'NX')
+  return wasSet !== null // null = já existia → duplicata
+}
+
+// ─── Helper: extrair subscriptionId de Invoice (Stripe v22+) ─────────────────
+// Na API 2026-03-25.dahlia, Invoice.subscription foi substituído por
+// invoice.parent?.subscription_details?.subscription. Esse helper cobre ambas.
+function getSubscriptionIdFromInvoice(invoice: Stripe.Invoice): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inv = invoice as any
+  // v22+ (dahlia): parent.subscription_details.subscription
+  const parentSub = inv.parent?.subscription_details?.subscription
+  if (typeof parentSub === 'string') return parentSub
+  if (parentSub?.id) return parentSub.id
+  // fallback (versões anteriores): invoice.subscription
+  if (typeof inv.subscription === 'string') return inv.subscription
+  if (inv.subscription?.id) return inv.subscription.id
+  return null
+}
+
+// ─── Helpers de atualização de status ────────────────────────────────────────
+
+async function updateTenantStatus(
+  where: { subscriptionId?: string; tenantId?: string },
+  newStatus: string,
+  extraFields?: Partial<{ plano: string; billingCustomerId: string; billingSubscriptionId: string }>,
+  auditExtra?: Record<string, unknown>,
+): Promise<string | null> {
+  const whereClause =
+    where.tenantId
+      ? eq(tenants.id, where.tenantId)
+      : where.subscriptionId
+        ? eq(tenants.billingSubscriptionId, where.subscriptionId!)
+        : null
+
+  if (!whereClause) return null
+
+  const [updated] = await db
+    .update(tenants)
+    .set({ status: newStatus, ...extraFields })
+    .where(whereClause)
+    .returning({ id: tenants.id })
+
+  if (updated) {
+    invalidateTenantStatusCache(updated.id)
+    writeAuditLog({
+      tenantId: updated.id,
+      usuarioId: null,
+      acao: 'update',
+      entidade: 'billing',
+      dadosDepois: { status: newStatus, ...auditExtra },
+      ip: 'stripe-webhook',
+    })
+    return updated.id
+  }
+
+  return null
+}
+
+// ─── Handler principal ────────────────────────────────────────────────────────
+
 export async function POST(req: Request) {
-  // Verify webhook authenticity
-  const webhookToken = req.headers.get('asaas-access-token')
-  if (!process.env.ASAAS_WEBHOOK_TOKEN) {
-    logger.warn('[Webhook] ASAAS_WEBHOOK_TOKEN not configured — rejecting')
-    return Response.json({ error: 'Webhook not configured' }, { status: 503 })
-  }
-  if (webhookToken !== process.env.ASAAS_WEBHOOK_TOKEN) {
-    logger.warn({ received: webhookToken?.slice(0, 8) }, '[Webhook] Invalid token')
-    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+  if (!webhookSecret) {
+    logger.warn('[Webhook] STRIPE_WEBHOOK_SECRET não configurado — rejeitando')
+    return Response.json({ error: 'Webhook não configurado' }, { status: 503 })
   }
 
-  let payload: AsaasWebhookPayload
+  // Lê o body como texto para verificação de assinatura (necessário antes de parsear JSON)
+  const body = await req.text()
+  const sig = req.headers.get('stripe-signature')
+
+  if (!sig) {
+    logger.warn('[Webhook] Requisição sem header stripe-signature')
+    return Response.json({ error: 'Assinatura ausente' }, { status: 400 })
+  }
+
+  let event: Stripe.Event
   try {
-    payload = await req.json()
-  } catch {
-    return Response.json({ error: 'Invalid JSON' }, { status: 400 })
+    event = getStripe().webhooks.constructEvent(body, sig, webhookSecret)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.warn({ err: msg }, '[Webhook] Falha na verificação da assinatura Stripe')
+    return Response.json({ error: 'Assinatura inválida' }, { status: 400 })
   }
 
-  logger.info({ event: payload.event, paymentId: payload.payment?.id, eventId: payload.id }, '[Webhook] Event received')
+  logger.info({ eventId: event.id, type: event.type }, '[Webhook] Evento recebido')
 
-  const subId = payload.payment?.subscription || payload.subscription?.id
-  const gate = await shouldProcessEvent(payload.id, payload.dateCreated, subId)
-  if (!gate.process) {
-    logger.info(
-      { eventId: payload.id, event: payload.event, reason: gate.reason },
-      '[Webhook] Skipped (idempotency/ordering)'
-    )
-    return Response.json({ received: true, skipped: gate.reason })
+  // Idempotência: ignora eventos já processados
+  const isNew = await isNewEvent(event.id)
+  if (!isNew) {
+    logger.info({ eventId: event.id, type: event.type }, '[Webhook] Evento duplicado ignorado')
+    return Response.json({ received: true, skipped: 'duplicate' })
   }
 
   try {
-    switch (payload.event) {
-      case 'PAYMENT_CONFIRMED':
-      case 'PAYMENT_RECEIVED': {
-        // Payment received → activate tenant
-        const subId = payload.payment?.subscription
-        if (!subId) break
+    switch (event.type) {
 
-        const [tenant] = await db
-          .update(tenants)
-          .set({ status: 'active' })
-          .where(eq(tenants.billingSubscriptionId, subId))
-          .returning({ id: tenants.id })
+      // ── Checkout concluído → associa customer/subscription e ativa ──────────
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session
+        const tenantId = session.metadata?.tenantId
 
-        if (tenant) {
-          invalidateTenantStatusCache(tenant.id)
-          logger.info({ tenantId: tenant.id, event: payload.event }, '[Webhook] Tenant activated')
-          writeAuditLog({
-            tenantId: tenant.id,
-            usuarioId: null,
-            acao: 'update',
-            entidade: 'billing',
-            dadosDepois: { status: 'active', event: payload.event },
-            ip: 'asaas-webhook',
-          })
+        if (!tenantId) {
+          logger.warn({ sessionId: session.id }, '[Webhook] checkout.session.completed sem tenantId no metadata')
+          break
+        }
+
+        const customerId =
+          typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null
+        const subscriptionId =
+          typeof session.subscription === 'string'
+            ? session.subscription
+            : session.subscription?.id ?? null
+        const planId = session.metadata?.planId ?? null
+
+        const updatedId = await updateTenantStatus(
+          { tenantId },
+          'active',
+          {
+            ...(customerId ? { billingCustomerId: customerId } : {}),
+            ...(subscriptionId ? { billingSubscriptionId: subscriptionId } : {}),
+            ...(planId ? { plano: planId } : {}),
+          },
+          { event: event.type, stripeSessionId: session.id },
+        )
+
+        if (updatedId) {
+          logger.info({ tenantId: updatedId, customerId, subscriptionId }, '[Webhook] Tenant ativado após checkout')
+        } else {
+          logger.warn({ tenantId }, '[Webhook] Tenant não encontrado para checkout.session.completed')
         }
         break
       }
 
-      case 'PAYMENT_OVERDUE': {
-        // Payment overdue → suspend tenant (Asaas already gives 3-day grace by default)
-        const subId = payload.payment?.subscription
-        if (!subId) break
+      // ── Fatura paga → ativa tenant ───────────────────────────────────────────
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice
+        const subscriptionId = getSubscriptionIdFromInvoice(invoice)
 
-        const [tenant] = await db
-          .update(tenants)
-          .set({ status: 'suspended' })
-          .where(eq(tenants.billingSubscriptionId, subId))
-          .returning({ id: tenants.id })
+        if (!subscriptionId) break
 
-        if (tenant) {
-          invalidateTenantStatusCache(tenant.id)
-          logger.warn({ tenantId: tenant.id }, '[Webhook] Tenant suspended (overdue)')
-          writeAuditLog({
-            tenantId: tenant.id,
-            usuarioId: null,
-            acao: 'update',
-            entidade: 'billing',
-            dadosDepois: { status: 'suspended', reason: 'overdue' },
-            ip: 'asaas-webhook',
-          })
+        const updatedId = await updateTenantStatus(
+          { subscriptionId },
+          'active',
+          {},
+          { event: event.type, invoiceId: invoice.id },
+        )
+
+        if (updatedId) {
+          logger.info({ tenantId: updatedId, subscriptionId }, '[Webhook] Tenant ativado (invoice.paid)')
         }
         break
       }
 
-      case 'SUBSCRIPTION_DELETED': {
-        // Cancellation → mark tenant as cancelled
-        // (Asaas handles end-of-period effect on their side)
-        const subId = payload.subscription?.id
-        if (!subId) break
+      // ── Falha no pagamento → suspende tenant ─────────────────────────────────
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice
+        const subscriptionId = getSubscriptionIdFromInvoice(invoice)
 
-        const [tenant] = await db
-          .update(tenants)
-          .set({ status: 'cancelled' })
-          .where(eq(tenants.billingSubscriptionId, subId))
-          .returning({ id: tenants.id })
+        if (!subscriptionId) break
 
-        if (tenant) {
-          invalidateTenantStatusCache(tenant.id)
-          logger.info({ tenantId: tenant.id }, '[Webhook] Tenant cancelled')
-          writeAuditLog({
-            tenantId: tenant.id,
-            usuarioId: null,
-            acao: 'delete',
-            entidade: 'billing',
-            dadosDepois: { status: 'cancelled' },
-            ip: 'asaas-webhook',
-          })
+        const updatedId = await updateTenantStatus(
+          { subscriptionId },
+          'suspended',
+          {},
+          { event: event.type, invoiceId: invoice.id },
+        )
+
+        if (updatedId) {
+          logger.warn({ tenantId: updatedId, subscriptionId }, '[Webhook] Tenant suspenso (invoice.payment_failed)')
         }
         break
       }
 
-      case 'PAYMENT_REFUNDED':
-      case 'PAYMENT_CHARGEBACK_REQUESTED':
-      case 'PAYMENT_CHARGEBACK_DISPUTE': {
-        const subId = payload.payment?.subscription
-        if (!subId) break
+      // ── Assinatura cancelada → marca como cancelado ──────────────────────────
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription
+        const subscriptionId = subscription.id
 
-        const [tenant] = await db
-          .update(tenants)
-          .set({ status: 'suspended' })
-          .where(eq(tenants.billingSubscriptionId, subId))
-          .returning({ id: tenants.id })
+        const updatedId = await updateTenantStatus(
+          { subscriptionId },
+          'cancelled',
+          {},
+          { event: event.type },
+        )
 
-        if (tenant) {
-          invalidateTenantStatusCache(tenant.id)
-          logger.warn({ tenantId: tenant.id, event: payload.event }, '[Webhook] Tenant suspended (chargeback/refund)')
+        if (updatedId) {
+          logger.info({ tenantId: updatedId, subscriptionId }, '[Webhook] Tenant cancelado (subscription.deleted)')
         }
         break
       }
-
-      case 'SUBSCRIPTION_CREATED':
-      case 'SUBSCRIPTION_UPDATED':
-        logger.info({ event: payload.event }, '[Webhook] Subscription event logged')
-        break
 
       default:
-        logger.info({ event: payload.event }, '[Webhook] Event not handled')
+        logger.info({ type: event.type }, '[Webhook] Evento não tratado')
     }
 
-    return Response.json({ received: true, event: payload.event })
+    return Response.json({ received: true, event: event.type })
   } catch (error) {
     logger.error(
-      { err: error instanceof Error ? error.message : String(error), event: payload.event },
-      '[Webhook] Processing error'
+      { err: error instanceof Error ? error.message : String(error), eventId: event.id, type: event.type },
+      '[Webhook] Erro ao processar evento',
     )
-    return Response.json({ error: 'Processing failed' }, { status: 500 })
+    return Response.json({ error: 'Erro ao processar evento' }, { status: 500 })
   }
 }

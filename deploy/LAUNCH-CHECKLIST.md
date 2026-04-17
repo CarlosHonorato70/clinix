@@ -20,8 +20,9 @@
 - [ ] `OPENAI_API_KEY` configurado com creditos ativos
 - [ ] `RESEND_API_KEY` configurado
 - [ ] `RESEND_FROM_EMAIL` configurado (ex: noreply@clinixproia.com.br)
-- [ ] `ASAAS_API_KEY` configurado (sandbox primeiro, depois producao)
-- [ ] `ASAAS_WEBHOOK_TOKEN` definido
+- [ ] `STRIPE_SECRET_KEY` configurado (test primeiro, depois live)
+- [ ] `STRIPE_WEBHOOK_SECRET` definido
+- [ ] `STRIPE_PRICE_BASIC` e `STRIPE_PRICE_PRO` (IDs dos Prices criados no Stripe Dashboard)
 - [ ] `POSTHOG_KEY` configurado
 - [ ] `SENTRY_DSN` configurado
 
@@ -42,10 +43,12 @@
 
 ## Billing
 
-- [ ] Conta Asaas criada e ativada
-- [ ] Webhook configurado: `https://clinixproia.com.br/api/billing/webhook`
-- [ ] Planos Basic (R$197) e Pro (R$497) criados no Asaas
-- [ ] Testar fluxo: signup > trial > upgrade > pagamento
+- [ ] Conta Stripe criada e ativada
+- [ ] Webhook configurado no Stripe Dashboard: `https://clinixproia.com.br/api/billing/webhook`
+- [ ] Eventos do webhook: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`
+- [ ] Produtos Basic (R$197/mês) e Pro (R$497/mês) criados no Stripe
+- [ ] Customer Portal habilitado no Stripe Dashboard (Settings > Billing > Customer portal)
+- [ ] Testar fluxo: signup > trial > upgrade > checkout > pagamento
 
 ## Monitoramento
 

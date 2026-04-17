@@ -20,9 +20,10 @@ const serverEnvSchema = z.object({
   // Optional services — validated only if present
   OPENAI_API_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
-  ASAAS_API_KEY: z.string().optional(),
-  ASAAS_BASE_URL: z.string().url().optional(),
-  ASAAS_WEBHOOK_TOKEN: z.string().optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRICE_BASIC: z.string().optional(),
+  STRIPE_PRICE_PRO: z.string().optional(),
   REDIS_URL: z.string().optional(),
   NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().optional(),

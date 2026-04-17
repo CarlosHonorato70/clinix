@@ -21,7 +21,7 @@ type AuthenticatedHandler = (
 const tenantStatusCache = new Map<string, { status: string; expiresAt: number }>()
 
 /**
- * Invalida o cache de status do tenant. Usado pelo webhook Asaas
+ * Invalida o cache de status do tenant. Usado pelo webhook de billing (Stripe)
  * quando o status muda (active → suspended/cancelled) para que o
  * withAuth não continue autorizando requests por até 60s com base
  * em status stale.

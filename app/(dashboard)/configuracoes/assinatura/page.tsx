@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Card from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
-import { useApi } from '@/lib/api/client'
+import { useApi, apiFetch } from '@/lib/api/client'
 import { PLANS } from '@/lib/billing/plans'
 
 interface TenantBilling {
@@ -19,6 +19,44 @@ export default function AssinaturaPage() {
   const tenant = data?.tenant
   const currentPlan = PLANS.find((p) => p.id === tenant?.plano) || PLANS[0]
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  // Stripe Checkout — redireciona para página de pagamento do Stripe
+  async function handleSubscribe(planId: string) {
+    setLoading(true)
+    try {
+      const res = await apiFetch('/billing/subscribe', {
+        method: 'POST',
+        body: JSON.stringify({ planId }),
+      })
+      if (res.url) {
+        window.location.href = res.url
+      } else {
+        alert(res.error || 'Erro ao iniciar checkout')
+      }
+    } catch {
+      alert('Erro de conexão')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Stripe Customer Portal — gerenciar assinatura existente
+  async function handleManageSubscription() {
+    setLoading(true)
+    try {
+      const res = await apiFetch('/billing/portal')
+      if (res.url) {
+        window.location.href = res.url
+      } else {
+        alert(res.error || 'Erro ao abrir portal')
+      }
+    } catch {
+      alert('Erro de conexão')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const statusColor = {
     trial: 'amber' as const,
@@ -44,7 +82,22 @@ export default function AssinaturaPage() {
               <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text)', margin: 0 }}>Sua assinatura</h2>
               <p style={{ fontSize: 13, color: 'var(--text3)', marginTop: 4 }}>{tenant?.nome ?? '—'}</p>
             </div>
-            <Badge color={statusColor}>{statusLabel}</Badge>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Badge color={statusColor}>{statusLabel}</Badge>
+              {tenant?.status === 'active' && (
+                <button
+                  disabled={loading}
+                  onClick={handleManageSubscription}
+                  style={{
+                    padding: '6px 16px', fontSize: 12, fontWeight: 500,
+                    background: 'transparent', border: '1px solid var(--border)',
+                    borderRadius: 6, color: 'var(--text2)', cursor: 'pointer',
+                  }}
+                >
+                  Gerenciar assinatura
+                </button>
+              )}
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
@@ -132,14 +185,22 @@ export default function AssinaturaPage() {
                       color: 'var(--text2)', fontSize: 13, fontWeight: 500, textDecoration: 'none',
                     }}>Falar com vendas</a>
                   ) : (
-                    <button style={{
-                      width: '100%', padding: '10px 0',
-                      background: isSelected ? 'linear-gradient(135deg, #7c3aed, #3b82f6)' : 'transparent',
-                      border: isSelected ? '1px solid rgba(139,92,246,0.5)' : '1px solid var(--border)',
-                      borderRadius: 8, color: isSelected ? '#fff' : 'var(--text2)',
-                      fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    }}>
-                      {isSelected ? 'Confirmar upgrade' : 'Selecionar'}
+                    <button
+                      disabled={loading}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (isSelected) handleSubscribe(plan.id)
+                        else setSelectedPlan(plan.id)
+                      }}
+                      style={{
+                        width: '100%', padding: '10px 0',
+                        background: isSelected ? 'linear-gradient(135deg, #7c3aed, #3b82f6)' : 'transparent',
+                        border: isSelected ? '1px solid rgba(139,92,246,0.5)' : '1px solid var(--border)',
+                        borderRadius: 8, color: isSelected ? '#fff' : 'var(--text2)',
+                        fontSize: 13, fontWeight: 600, cursor: loading ? 'wait' : 'pointer',
+                        opacity: loading ? 0.6 : 1,
+                      }}>
+                      {loading ? 'Redirecionando...' : isSelected ? 'Confirmar upgrade' : 'Selecionar'}
                     </button>
                   )}
                 </div>

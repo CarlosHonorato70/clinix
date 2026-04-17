@@ -45,7 +45,7 @@ export default function AssinaturaPage() {
   async function handleManageSubscription() {
     setLoading(true)
     try {
-      const res = await apiFetch('/billing/portal')
+      const res = await apiFetch('/billing/portal', { method: 'POST' })
       if (res.url) {
         window.location.href = res.url
       } else {

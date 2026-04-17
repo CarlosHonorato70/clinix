@@ -58,7 +58,7 @@ function InviteForm() {
         setError(data.error)
         return
       }
-      router.push('/')
+      router.push('/dashboard')
     } catch {
       setError('Erro de conexão')
     } finally {

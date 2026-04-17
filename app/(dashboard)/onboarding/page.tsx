@@ -54,18 +54,26 @@ export default function OnboardingPage() {
       setSaving(false)
     }
 
-    if (step === 3 && paciente.nome.trim()) {
-      setSaving(true)
-      await apiFetch('/pacientes', {
-        method: 'POST',
-        body: JSON.stringify(paciente),
-      }).catch(() => {})
-      setSaving(false)
-      router.push('/')
+    if (step === 3) {
+      // Paciente é opcional — só cria se nome preenchido
+      if (paciente.nome.trim()) {
+        setSaving(true)
+        await apiFetch('/pacientes', {
+          method: 'POST',
+          body: JSON.stringify(paciente),
+        }).catch(() => {})
+        setSaving(false)
+      }
+      router.push('/dashboard')
       return
     }
 
     if (step < STEPS.length - 1) setStep(step + 1)
+  }
+
+  // Botão "Pular tudo" do onboarding (canto superior direito)
+  const handleSkipAll = () => {
+    router.push('/dashboard')
   }
 
   const inputStyle: React.CSSProperties = {
@@ -82,6 +90,24 @@ export default function OnboardingPage() {
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '40px 0' }}>
+      {/* Skip all link (canto superior) */}
+      <div style={{ textAlign: 'right', marginBottom: 12 }}>
+        <button
+          onClick={handleSkipAll}
+          style={{
+            padding: '4px 12px',
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text3)',
+            fontSize: 12,
+            cursor: 'pointer',
+            textDecoration: 'underline',
+          }}
+        >
+          Pular e configurar depois →
+        </button>
+      </div>
+
       {/* Progress */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
         {STEPS.map((s, i) => (
